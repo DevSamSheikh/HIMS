@@ -61,6 +61,18 @@ const SettingsDrawer = ({
 
     // Apply font size to the entire app
     document.documentElement.style.setProperty("--font-size", `${value[0]}px`);
+
+    // Update all text elements in the application
+    document.documentElement.style.fontSize = `${value[0]}px`;
+
+    // Force refresh all text elements
+    const allTextElements = document.querySelectorAll(
+      "p, h1, h2, h3, h4, h5, h6, span, div, button, input, textarea, label, a",
+    );
+    allTextElements.forEach((el) => {
+      el.classList.add("font-size-refresh");
+      setTimeout(() => el.classList.remove("font-size-refresh"), 10);
+    });
   };
 
   const handleFontFamilyChange = (value: string) => {
@@ -70,6 +82,16 @@ const SettingsDrawer = ({
     // Apply font family to the entire app
     document.documentElement.style.setProperty("font-family", value);
     document.body.style.fontFamily = value;
+
+    // Force refresh all text elements to apply new font family
+    const allTextElements = document.querySelectorAll(
+      "p, h1, h2, h3, h4, h5, h6, span, div, button, input, textarea, label, a",
+    );
+    allTextElements.forEach((el) => {
+      el.style.fontFamily = value;
+      el.classList.add("font-family-refresh");
+      setTimeout(() => el.classList.remove("font-family-refresh"), 10);
+    });
   };
 
   const handleColorPresetChange = (value: string) => {
@@ -394,9 +416,18 @@ const SettingsDrawer = ({
       updateCssVariables(colorPreset, theme);
       document.body.classList.add(`preset-${colorPreset}`);
 
-      // Apply initial font family
+      // Apply initial font family to all elements
       document.documentElement.style.setProperty("font-family", fontFamily);
       document.body.style.fontFamily = fontFamily;
+      document.documentElement.style.fontSize = `${fontSize}px`;
+
+      // Apply font family to all text elements
+      const allTextElements = document.querySelectorAll(
+        "p, h1, h2, h3, h4, h5, h6, span, div, button, input, textarea, label, a",
+      );
+      allTextElements.forEach((el) => {
+        el.style.fontFamily = fontFamily;
+      });
 
       // Apply font size
       document.documentElement.style.setProperty(
@@ -554,11 +585,7 @@ const SettingsDrawer = ({
             </Tabs>
           </div>
 
-          <SheetFooter className="mt-6">
-            <SheetClose asChild>
-              <Button className="w-full">Close</Button>
-            </SheetClose>
-          </SheetFooter>
+          {/* Footer removed as requested */}
         </div>
       </SheetContent>
     </Sheet>

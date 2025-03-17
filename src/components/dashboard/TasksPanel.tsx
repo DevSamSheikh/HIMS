@@ -10,6 +10,7 @@ import {
   ArrowRightCircle,
   UserPlus,
 } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface Task {
   id: string;
@@ -189,7 +190,7 @@ const TasksPanel = ({
   );
 
   return (
-    <Card className="w-full bg-card">
+    <Card className="w-full bg-card overflow-hidden">
       <CardHeader>
         <CardTitle className="text-xl flex items-center">
           <Clock className="mr-2 h-5 w-5" />
@@ -197,100 +198,102 @@ const TasksPanel = ({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <Tabs defaultValue="priority">
-          <TabsList className="mb-4 w-full justify-start">
-            <TabsTrigger value="priority">By Priority</TabsTrigger>
-            <TabsTrigger value="module">By Module</TabsTrigger>
-          </TabsList>
+        <ScrollArea className="h-[300px] pr-4">
+          <Tabs defaultValue="priority">
+            <TabsList className="mb-4 w-full justify-start">
+              <TabsTrigger value="priority">By Priority</TabsTrigger>
+              <TabsTrigger value="module">By Module</TabsTrigger>
+            </TabsList>
 
-          <TabsContent value="priority" className="space-y-4">
-            {highPriorityTasks.length > 0 && (
-              <div>
-                <h3 className="text-sm font-medium flex items-center mb-2">
-                  <AlertCircle className="w-4 h-4 mr-1 text-red-500" />
-                  High Priority
-                </h3>
-                <div className="bg-gray-50 dark:bg-gray-800 rounded-md">
-                  {highPriorityTasks.map(renderTaskItem)}
+            <TabsContent value="priority" className="space-y-4">
+              {highPriorityTasks.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-medium flex items-center mb-2">
+                    <AlertCircle className="w-4 h-4 mr-1 text-red-500" />
+                    High Priority
+                  </h3>
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-md">
+                    {highPriorityTasks.map(renderTaskItem)}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {mediumPriorityTasks.length > 0 && (
-              <div>
-                <h3 className="text-sm font-medium flex items-center mb-2">
-                  <Clock className="w-4 h-4 mr-1 text-amber-500" />
-                  Medium Priority
-                </h3>
-                <div className="bg-gray-50 dark:bg-gray-800 rounded-md">
-                  {mediumPriorityTasks.map(renderTaskItem)}
+              {mediumPriorityTasks.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-medium flex items-center mb-2">
+                    <Clock className="w-4 h-4 mr-1 text-amber-500" />
+                    Medium Priority
+                  </h3>
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-md">
+                    {mediumPriorityTasks.map(renderTaskItem)}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {lowPriorityTasks.length > 0 && (
-              <div>
-                <h3 className="text-sm font-medium flex items-center mb-2">
-                  <ArrowRightCircle className="w-4 h-4 mr-1 text-blue-500" />
-                  Low Priority
-                </h3>
-                <div className="bg-gray-50 dark:bg-gray-800 rounded-md">
-                  {lowPriorityTasks.map(renderTaskItem)}
+              {lowPriorityTasks.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-medium flex items-center mb-2">
+                    <ArrowRightCircle className="w-4 h-4 mr-1 text-blue-500" />
+                    Low Priority
+                  </h3>
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-md">
+                    {lowPriorityTasks.map(renderTaskItem)}
+                  </div>
                 </div>
-              </div>
-            )}
-          </TabsContent>
+              )}
+            </TabsContent>
 
-          <TabsContent value="module" className="space-y-4">
-            {patientManagementTasks.length > 0 && (
-              <div>
-                <h3 className="text-sm font-medium flex items-center mb-2">
-                  <span className="w-3 h-3 rounded-full bg-blue-500 mr-2"></span>
-                  Patient Management
-                </h3>
-                <div className="bg-gray-50 dark:bg-gray-800 rounded-md">
-                  {patientManagementTasks.map(renderTaskItem)}
+            <TabsContent value="module" className="space-y-4">
+              {patientManagementTasks.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-medium flex items-center mb-2">
+                    <span className="w-3 h-3 rounded-full bg-blue-500 mr-2"></span>
+                    Patient Management
+                  </h3>
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-md">
+                    {patientManagementTasks.map(renderTaskItem)}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {billingTasks.length > 0 && (
-              <div>
-                <h3 className="text-sm font-medium flex items-center mb-2">
-                  <span className="w-3 h-3 rounded-full bg-green-500 mr-2"></span>
-                  Billing
-                </h3>
-                <div className="bg-gray-50 dark:bg-gray-800 rounded-md">
-                  {billingTasks.map(renderTaskItem)}
+              {billingTasks.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-medium flex items-center mb-2">
+                    <span className="w-3 h-3 rounded-full bg-green-500 mr-2"></span>
+                    Billing
+                  </h3>
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-md">
+                    {billingTasks.map(renderTaskItem)}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {appointmentsTasks.length > 0 && (
-              <div>
-                <h3 className="text-sm font-medium flex items-center mb-2">
-                  <span className="w-3 h-3 rounded-full bg-purple-500 mr-2"></span>
-                  Appointments
-                </h3>
-                <div className="bg-gray-50 dark:bg-gray-800 rounded-md">
-                  {appointmentsTasks.map(renderTaskItem)}
+              {appointmentsTasks.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-medium flex items-center mb-2">
+                    <span className="w-3 h-3 rounded-full bg-purple-500 mr-2"></span>
+                    Appointments
+                  </h3>
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-md">
+                    {appointmentsTasks.map(renderTaskItem)}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {administrativeTasks.length > 0 && (
-              <div>
-                <h3 className="text-sm font-medium flex items-center mb-2">
-                  <span className="w-3 h-3 rounded-full bg-orange-500 mr-2"></span>
-                  Administrative Tasks
-                </h3>
-                <div className="bg-gray-50 dark:bg-gray-800 rounded-md">
-                  {administrativeTasks.map(renderTaskItem)}
+              {administrativeTasks.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-medium flex items-center mb-2">
+                    <span className="w-3 h-3 rounded-full bg-orange-500 mr-2"></span>
+                    Administrative Tasks
+                  </h3>
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-md">
+                    {administrativeTasks.map(renderTaskItem)}
+                  </div>
                 </div>
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
+              )}
+            </TabsContent>
+          </Tabs>
+        </ScrollArea>
       </CardContent>
     </Card>
   );

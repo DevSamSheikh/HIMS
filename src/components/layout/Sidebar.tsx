@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -58,6 +59,11 @@ import {
   DollarSign,
   BarChart,
   TestTube,
+  Activity,
+  AlertCircle,
+  Truck,
+  Clock,
+  CheckCircle,
 } from "lucide-react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 
@@ -96,6 +102,11 @@ const NavItem = ({
   const [isOpen, setIsOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const hasSubItems = subItems && subItems.length > 0;
+  const location = useLocation();
+
+  // Check if any subitems are active based on current location
+  const hasActiveSubItem =
+    hasSubItems && subItems.some((item) => location.pathname === item.href);
 
   const toggleSubMenu = (e: React.MouseEvent) => {
     if (hasSubItems) {
@@ -108,6 +119,12 @@ const NavItem = ({
   const getSubItemIcon = (label: string) => {
     const iconMap: Record<string, React.ReactNode> = {
       // Records & Definitions
+      Categories: <FileText size={16} />,
+      Departments: <Building2 size={16} />,
+      Companies: <Building2 size={16} />,
+      Warehouses: <Boxes size={16} />,
+      Banks: <CreditCardIcon size={16} />,
+      "Units of Measurement": <FileSpreadsheet size={16} />,
       Forms: <FileText size={16} />,
       Templates: <FileSpreadsheet size={16} />,
       Reports: <FileBarChart size={16} />,
@@ -133,6 +150,7 @@ const NavItem = ({
       Discharges: <Clipboard size={16} />,
 
       // Pharmacy
+      Items: <Pill size={16} />,
       Inventory: <Boxes size={16} />,
       Prescriptions: <FileOutput size={16} />,
       Sales: <ShoppingCart size={16} />,
@@ -148,7 +166,7 @@ const NavItem = ({
       Reports: <BarChart size={16} />,
     };
 
-    return iconMap[label] || <ChevronRight size={16} />;
+    return iconMap[label] || <FileText size={16} />;
   };
 
   // For collapsed sidebar with submenu items
@@ -162,12 +180,13 @@ const NavItem = ({
         <Popover open={isHovered} onOpenChange={setIsHovered}>
           <PopoverTrigger asChild>
             <Button
-              variant={active ? "secondary" : "ghost"}
+              variant={active || hasActiveSubItem ? "secondary" : "ghost"}
               size="icon"
               className={cn(
                 "w-10 h-10",
-                active && "bg-secondary",
-                !active && "hover:bg-primary/10 hover:text-primary",
+                (active || hasActiveSubItem) && "bg-secondary",
+                !(active || hasActiveSubItem) &&
+                  "hover:bg-primary/10 hover:text-primary",
               )}
             >
               <div className="flex items-center justify-center">{icon}</div>
@@ -182,20 +201,28 @@ const NavItem = ({
               <div className="px-3 py-2 font-medium text-sm">{label}</div>
               <Separator className="my-1" />
               <div className="mt-2 space-y-1">
-                {subItems.map((subItem) => (
-                  <Button
-                    key={subItem.id}
-                    variant="ghost"
-                    size="sm"
-                    className="w-full justify-start px-2 gap-2 hover:bg-primary/10 hover:text-primary"
-                    asChild
-                  >
-                    <a href={subItem.href} className="flex items-center">
-                      {getSubItemIcon(subItem.label)}
-                      <span>{subItem.label}</span>
-                    </a>
-                  </Button>
-                ))}
+                {subItems.map((subItem) => {
+                  const isActive = location.pathname === subItem.href;
+                  return (
+                    <Button
+                      key={subItem.id}
+                      variant="ghost"
+                      size="sm"
+                      className={cn(
+                        "w-full justify-start px-2 gap-2",
+                        isActive
+                          ? "bg-secondary text-secondary-foreground"
+                          : "hover:bg-primary/10 hover:text-primary",
+                      )}
+                      asChild
+                    >
+                      <Link to={subItem.href} className="flex items-center">
+                        {getSubItemIcon(subItem.label)}
+                        <span>{subItem.label}</span>
+                      </Link>
+                    </Button>
+                  );
+                })}
               </div>
             </div>
           </PopoverContent>
@@ -211,39 +238,54 @@ const NavItem = ({
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
-              variant={active ? "secondary" : "ghost"}
+              variant={active || hasActiveSubItem ? "secondary" : "ghost"}
               size={collapsed ? "icon" : "default"}
               className={cn(
                 "w-full justify-start",
                 collapsed ? "h-10 w-10" : "px-2",
-                active && "bg-secondary",
+                (active || hasActiveSubItem) && "bg-secondary",
                 hasSubItems && "justify-between",
-                !active && "hover:bg-primary/10 hover:text-primary",
+                !(active || hasActiveSubItem) &&
+                  "hover:bg-primary/10 hover:text-primary",
               )}
               onClick={hasSubItems ? toggleSubMenu : onClick}
               asChild
             >
-              <a
-                href={hasSubItems ? "#" : href}
-                className={cn(
-                  "flex items-center",
-                  collapsed ? "justify-center" : "justify-between w-full",
-                )}
-              >
-                <div className="flex items-center">
-                  {icon}
-                  {!collapsed && <span className="ml-2">{label}</span>}
-                </div>
-                {!collapsed && hasSubItems && (
-                  <div className="ml-2">
-                    {isOpen ? (
-                      <ChevronDown size={16} />
-                    ) : (
-                      <ChevronRight size={16} />
-                    )}
+              {hasSubItems ? (
+                <div
+                  className={cn(
+                    "flex items-center",
+                    collapsed ? "justify-center" : "justify-between w-full",
+                  )}
+                >
+                  <div className="flex items-center">
+                    {icon}
+                    {!collapsed && <span className="ml-2">{label}</span>}
                   </div>
-                )}
-              </a>
+                  {!collapsed && hasSubItems && (
+                    <div className="ml-2">
+                      {isOpen ? (
+                        <ChevronDown size={16} />
+                      ) : (
+                        <ChevronRight size={16} />
+                      )}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <Link
+                  to={href}
+                  className={cn(
+                    "flex items-center",
+                    collapsed ? "justify-center" : "justify-between w-full",
+                  )}
+                >
+                  <div className="flex items-center">
+                    {icon}
+                    {!collapsed && <span className="ml-2">{label}</span>}
+                  </div>
+                </Link>
+              )}
             </Button>
           </TooltipTrigger>
           {collapsed && !hasSubItems && (
@@ -254,22 +296,30 @@ const NavItem = ({
         </Tooltip>
       </TooltipProvider>
 
-      {hasSubItems && isOpen && !collapsed && (
+      {hasSubItems && (isOpen || hasActiveSubItem) && !collapsed && (
         <div className="ml-6 mt-1 space-y-1 border-l pl-2">
-          {subItems.map((subItem) => (
-            <Button
-              key={subItem.id}
-              variant="ghost"
-              size="sm"
-              className="w-full justify-start px-2 gap-2 hover:bg-primary/10 hover:text-primary"
-              asChild
-            >
-              <a href={subItem.href} className="flex items-center">
-                {getSubItemIcon(subItem.label)}
-                <span>{subItem.label}</span>
-              </a>
-            </Button>
-          ))}
+          {subItems.map((subItem) => {
+            const isActive = location.pathname === subItem.href;
+            return (
+              <Button
+                key={subItem.id}
+                variant="ghost"
+                size="sm"
+                className={cn(
+                  "w-full justify-start px-2 gap-2",
+                  isActive
+                    ? "bg-secondary text-secondary-foreground"
+                    : "hover:bg-primary/10 hover:text-primary",
+                )}
+                asChild
+              >
+                <Link to={subItem.href} className="flex items-center">
+                  {getSubItemIcon(subItem.label)}
+                  <span>{subItem.label}</span>
+                </Link>
+              </Button>
+            );
+          })}
         </div>
       )}
     </div>
@@ -282,10 +332,63 @@ const Sidebar = ({
   className,
   isMobile = false,
 }: SidebarProps) => {
-  // Mock active state - in a real app this would be determined by the current route
-  const [activeItem, setActiveItem] = useState("dashboard");
+  // Use react-router hooks for navigation and active state
+  const location = useLocation();
+  const [activeItem, setActiveItem] = useState("");
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(collapsed);
+
+  // Get current location and set active item
+  React.useEffect(() => {
+    const path = location.pathname;
+
+    // First check for exact matches
+    if (path === "/") {
+      setActiveItem("dashboard");
+      return;
+    }
+
+    // Check for main sections
+    const mainSections = [
+      { path: "/pharmacy-dashboard", id: "pharmacy-dashboard" },
+      { path: "/opd-dashboard", id: "opd-dashboard" },
+      { path: "/ipd-dashboard", id: "ipd-dashboard" },
+      { path: "/lab-dashboard", id: "lab-dashboard" },
+      { path: "/modules", id: "modules" },
+      { path: "/settings", id: "settings" },
+      { path: "/help", id: "help" },
+      { path: "/docs", id: "documentation" },
+    ];
+
+    const exactMatch = mainSections.find((section) => section.path === path);
+    if (exactMatch) {
+      setActiveItem(exactMatch.id);
+      return;
+    }
+
+    // Check for section prefixes
+    const sectionPrefixes = [
+      { prefix: "/records", id: "records" },
+      { prefix: "/security", id: "security" },
+      { prefix: "/patients", id: "patients" },
+      { prefix: "/opd", id: "opd" },
+      { prefix: "/ipd", id: "ipd" },
+      { prefix: "/pharmacy", id: "pharmacy" },
+      { prefix: "/lab", id: "lab" },
+      { prefix: "/billing", id: "billing" },
+    ];
+
+    const prefixMatch = sectionPrefixes.find((section) =>
+      path.startsWith(section.prefix),
+    );
+    if (prefixMatch) {
+      setActiveItem(prefixMatch.id);
+      return;
+    }
+
+    // Default to dashboard if no match
+    setActiveItem("dashboard");
+  }, [location.pathname]);
 
   const handleNavClick = (itemId: string) => {
     setActiveItem(itemId);
@@ -305,15 +408,65 @@ const Sidebar = ({
   const navItems = [
     {
       id: "dashboard",
-      label: "Dashboard",
-      icon: <Home size={20} />,
+      label: "Admin Dashboard",
+      icon: <LayoutDashboard size={20} />,
       href: "/",
+    },
+    {
+      id: "pharmacy-dashboard",
+      label: "Pharmacy Dashboard",
+      icon: <Pill size={20} />,
+      href: "/pharmacy-dashboard",
+    },
+    {
+      id: "opd-dashboard",
+      label: "OPD Dashboard",
+      icon: <Stethoscope size={20} />,
+      href: "/opd-dashboard",
+    },
+    {
+      id: "ipd-dashboard",
+      label: "IPD Dashboard",
+      icon: <BedDouble size={20} />,
+      href: "/ipd-dashboard",
+    },
+    {
+      id: "lab-dashboard",
+      label: "Lab Dashboard",
+      icon: <FlaskConical size={20} />,
+      href: "/lab-dashboard",
     },
     {
       id: "records",
       label: "Records & Definitions",
       icon: <Database size={20} />,
       subItems: [
+        { id: "categories", label: "Categories", href: "/records/categories" },
+        {
+          id: "departments",
+          label: "Departments",
+          href: "/records/departments",
+        },
+        {
+          id: "companies",
+          label: "Companies",
+          href: "/records/companies",
+        },
+        {
+          id: "warehouses",
+          label: "Warehouses",
+          href: "/records/warehouses",
+        },
+        {
+          id: "banks",
+          label: "Banks",
+          href: "/records/banks",
+        },
+        {
+          id: "uoms",
+          label: "Units of Measurement",
+          href: "/records/uoms",
+        },
         { id: "forms", label: "Forms", href: "/records/forms" },
         { id: "templates", label: "Templates", href: "/records/templates" },
         { id: "reports", label: "Reports", href: "/records/reports" },
@@ -380,6 +533,7 @@ const Sidebar = ({
       label: "Pharmacy",
       icon: <Pill size={20} />,
       subItems: [
+        { id: "items", label: "Items", href: "/pharmacy/items" },
         { id: "inventory", label: "Inventory", href: "/pharmacy/inventory" },
         {
           id: "prescriptions",
