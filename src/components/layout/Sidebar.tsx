@@ -151,6 +151,7 @@ const NavItem = ({
 
       // Pharmacy
       Items: <Pill size={16} />,
+      Customers: <Users size={16} />,
       Inventory: <Boxes size={16} />,
       Prescriptions: <FileOutput size={16} />,
       Sales: <ShoppingCart size={16} />,
@@ -216,7 +217,10 @@ const NavItem = ({
                       )}
                       asChild
                     >
-                      <Link to={subItem.href} className="flex items-center">
+                      <Link
+                        to={subItem.href}
+                        className="flex items-center cursor-pointer"
+                      >
                         {getSubItemIcon(subItem.label)}
                         <span>{subItem.label}</span>
                       </Link>
@@ -276,7 +280,7 @@ const NavItem = ({
                 <Link
                   to={href}
                   className={cn(
-                    "flex items-center",
+                    "flex items-center cursor-pointer",
                     collapsed ? "justify-center" : "justify-between w-full",
                   )}
                 >
@@ -313,7 +317,10 @@ const NavItem = ({
                 )}
                 asChild
               >
-                <Link to={subItem.href} className="flex items-center">
+                <Link
+                  to={subItem.href}
+                  className="flex items-center cursor-pointer"
+                >
                   {getSubItemIcon(subItem.label)}
                   <span>{subItem.label}</span>
                 </Link>
@@ -534,6 +541,7 @@ const Sidebar = ({
       icon: <Pill size={20} />,
       subItems: [
         { id: "items", label: "Items", href: "/pharmacy/items" },
+        { id: "customers", label: "Customers", href: "/pharmacy/customers" },
         { id: "inventory", label: "Inventory", href: "/pharmacy/inventory" },
         {
           id: "prescriptions",

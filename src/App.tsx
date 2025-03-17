@@ -1,4 +1,4 @@
-import { Suspense, lazy } from "react";
+import React, { Suspense, lazy } from "react";
 import { useRoutes, Routes, Route, Navigate } from "react-router-dom";
 import DashboardSkeleton from "./components/dashboard/DashboardSkeleton";
 import LoginForm from "./components/auth/LoginForm";
@@ -18,6 +18,8 @@ import BankForm from "./components/records/BankForm";
 import UOMForm from "./components/records/UOMForm";
 import ItemManagement from "./components/pharmacy/ItemManagement";
 import routes from "tempo-routes";
+import CustomerManagement from "./components/pharmacy/CustomerManagement";
+import InventoryManagement from "./components/pharmacy/InventoryManagement";
 
 // Lazy load dashboard components
 const AdminDashboard = lazy(
@@ -88,10 +90,8 @@ function App() {
             {/* Pharmacy routes */}
             <Route path="/pharmacy">
               <Route path="items" element={<ItemManagement />} />
-              <Route
-                path="inventory"
-                element={<div className="p-6">Inventory coming soon</div>}
-              />
+              <Route path="customers" element={<CustomerManagement />} />
+              <Route path="inventory" element={<InventoryManagement />} />
               <Route
                 path="prescriptions"
                 element={<div className="p-6">Prescriptions coming soon</div>}

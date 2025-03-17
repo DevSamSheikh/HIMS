@@ -42,6 +42,8 @@ interface SearchableSelectProps {
   required?: boolean;
   error?: string;
   className?: string;
+  showSelectedLabel?: boolean;
+  autoFocus?: boolean;
 }
 
 const SearchableSelect: React.FC<SearchableSelectProps> = ({
@@ -59,12 +61,28 @@ const SearchableSelect: React.FC<SearchableSelectProps> = ({
   required = false,
   error,
   className,
+  showSelectedLabel = false,
+  autoFocus = false,
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [newItemName, setNewItemName] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+
+  // Log when value changes and ensure the select reflects the current value
+  useEffect(() => {
+    console.log("SearchableSelect value:", value);
+    // Force the select to update its value if it doesn't match
+    if (value && document.activeElement !== searchInputRef.current) {
+      console.log("Forcing select value update to:", value);
+      // Force a re-render to ensure the select value is updated
+      const selectElement = document.querySelector(`[data-value="${value}"]`);
+      if (selectElement) {
+        console.log("Found select element for value:", value);
+      }
+    }
+  }, [value]);
 
   // Filter options based on search term
   const filteredOptions = options.filter((option) =>
@@ -110,6 +128,16 @@ const SearchableSelect: React.FC<SearchableSelectProps> = ({
     e.stopPropagation();
   };
 
+  const selectedOption = options.find((option) => option.id === value);
+  console.log(
+    "Selected option:",
+    selectedOption,
+    "from options:",
+    options,
+    "with value:",
+    value,
+  );
+
   return (
     <div className={cn("space-y-2", className)}>
       <Label className="flex">
@@ -118,7 +146,15 @@ const SearchableSelect: React.FC<SearchableSelectProps> = ({
       <div className="flex gap-2">
         <Select
           value={value}
-          onValueChange={onValueChange}
+          onValueChange={(val) => {
+            console.log("Select value changed to:", val);
+            // Ensure we're not in the middle of a search when changing value
+            if (searchTerm) {
+              setSearchTerm("");
+            }
+            // Call the onValueChange handler immediately
+            onValueChange(val);
+          }}
           onOpenChange={handleOpenChange}
         >
           <SelectTrigger
@@ -126,8 +162,11 @@ const SearchableSelect: React.FC<SearchableSelectProps> = ({
               "w-full",
               error ? "border-red-500 focus-visible:ring-red-500" : "",
             )}
+            data-value={value}
           >
-            <SelectValue placeholder={placeholder} />
+            <SelectValue placeholder={placeholder}>
+              {showSelectedLabel && selectedOption ? selectedOption.name : null}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             <div

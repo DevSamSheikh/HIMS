@@ -66,6 +66,7 @@ export interface Column<T> {
   isPinned?: boolean;
   isSortable?: boolean;
   isFilterable?: boolean;
+  cellType?: "text" | "number" | "date" | "checkbox" | "dropdown";
 }
 
 export interface DataTableProps<T extends { id: string }> {
@@ -154,12 +155,37 @@ const DataTable = <T extends { id: string }>({
   useEffect(() => {
     if (isAdding && addInputRef.current) {
       addInputRef.current.focus();
+
+      // Add event listener to prevent focus loss on dropdown cells
+      const handleFocusOut = (e: FocusEvent) => {
+        if (isAdding && addInputRef.current && !e.relatedTarget) {
+          // If focus is lost and not to another element, refocus the input
+          setTimeout(() => {
+            if (addInputRef.current) {
+              addInputRef.current.focus();
+            }
+          }, 0);
+        }
+      };
+
+      document.addEventListener("focusout", handleFocusOut as any);
+      return () => {
+        document.removeEventListener("focusout", handleFocusOut as any);
+      };
     }
   }, [isAdding]);
 
   // Update local state when data changes
   useEffect(() => {
-    setItems(data);
+    console.log("Data table received new data:", data);
+    // Create a new array to ensure React detects the change
+    setItems([...data]);
+
+    // If we're adding a new item, make sure to reset the adding state
+    if (isAdding && data.length > items.length) {
+      setIsAdding(false);
+      setNewItemValues({});
+    }
   }, [data]);
 
   // Global keyboard shortcuts
@@ -247,11 +273,26 @@ const DataTable = <T extends { id: string }>({
         return;
       }
 
+      console.log(
+        "Saving edited item with id:",
+        editingId,
+        "and values:",
+        editValues,
+      );
+
       const updatedItems = items.map((item) =>
         item.id === editingId ? { ...item, ...editValues } : item,
       );
+
       setItems(updatedItems);
-      if (onSave) onSave(updatedItems);
+      if (onSave) {
+        console.log(
+          "Calling onSave with updated items after edit:",
+          updatedItems,
+        );
+        onSave(updatedItems);
+      }
+
       toast({
         title: "Success",
         description: (
@@ -325,12 +366,28 @@ const DataTable = <T extends { id: string }>({
 
   const handleAddNew = () => {
     setIsAdding(true);
-    setNewItemValues({});
+    // Initialize with empty values to ensure the form renders properly
+    const emptyValues: Partial<T> = {};
+    columns.forEach((column) => {
+      if (column.cellType === "number") {
+        emptyValues[column.accessorKey] = 0 as any;
+      } else if (column.cellType === "checkbox") {
+        emptyValues[column.accessorKey] = false as any;
+      } else if (column.cellType === "date") {
+        emptyValues[column.accessorKey] = "" as any;
+      } else {
+        emptyValues[column.accessorKey] = "" as any;
+      }
+    });
+    setNewItemValues(emptyValues);
   };
 
   const handleAddSave = () => {
     // Basic validation - ensure required fields aren't empty
     const hasEmptyRequiredField = columns.some((column) => {
+      // Skip validation for auto-populated fields like UOM
+      if (column.accessorKey === ("uom" as keyof T)) return false;
+
       const value = newItemValues[column.accessorKey];
       return value === "" || value === undefined;
     });
@@ -366,12 +423,18 @@ const DataTable = <T extends { id: string }>({
       ...newItemValues,
     } as T;
 
+    console.log("Adding new item:", newItem);
+
     const updatedItems = useAddStartEntry
       ? [newItem, ...items]
       : [...items, newItem];
 
     setItems(updatedItems);
-    if (onSave) onSave(updatedItems);
+    if (onSave) {
+      console.log("Calling onSave with updated items:", updatedItems);
+      onSave(updatedItems);
+    }
+
     toast({
       title: "Success",
       description: (
@@ -535,27 +598,145 @@ const DataTable = <T extends { id: string }>({
 
   const renderCell = (item: T, column: Column<T>, isEditing: boolean) => {
     if (isEditing) {
-      return (
-        <Input
-          ref={editingId === item.id ? editInputRef : undefined}
-          value={(editValues[column.accessorKey] as string) || ""}
-          onChange={(e) =>
-            setEditValues((prev) => ({
-              ...prev,
-              [column.accessorKey]: e.target.value,
-            }))
+      // Handle different cell types for editing
+      switch (column.cellType) {
+        case "number":
+          return (
+            <Input
+              type="number"
+              ref={editingId === item.id ? editInputRef : undefined}
+              value={(editValues[column.accessorKey] as string) || ""}
+              onChange={(e) => {
+                // Ensure non-negative values for number inputs
+                const inputValue = e.target.value;
+                const numValue =
+                  inputValue === ""
+                    ? ""
+                    : Math.max(0, parseFloat(inputValue) || 0);
+
+                setEditValues((prev) => ({
+                  ...prev,
+                  [column.accessorKey]:
+                    e.target.type === "number" && numValue !== ""
+                      ? numValue
+                      : e.target.value,
+                }));
+              }}
+              onKeyDown={(e) => handleKeyDown(e, "edit")}
+              className="w-full"
+              min={0}
+            />
+          );
+        case "date":
+          return (
+            <Input
+              type="date"
+              ref={editingId === item.id ? editInputRef : undefined}
+              value={(editValues[column.accessorKey] as string) || ""}
+              onChange={(e) =>
+                setEditValues((prev) => ({
+                  ...prev,
+                  [column.accessorKey]: e.target.value,
+                }))
+              }
+              onKeyDown={(e) => handleKeyDown(e, "edit")}
+              className="w-full"
+            />
+          );
+        case "checkbox":
+          return (
+            <div className="flex items-center justify-center">
+              <input
+                type="checkbox"
+                checked={Boolean(editValues[column.accessorKey])}
+                onChange={(e) =>
+                  setEditValues((prev) => ({
+                    ...prev,
+                    [column.accessorKey]: e.target.checked,
+                  }))
+                }
+                className="h-4 w-4"
+              />
+            </div>
+          );
+        case "dropdown":
+          // For dropdown, we'll use the cell renderer if provided
+          if (column.cell) {
+            return (
+              <div
+                onClick={(e) => e.stopPropagation()}
+                className="w-full"
+                data-dropdown-cell="true"
+              >
+                {column.cell({ ...item, ...editValues } as T)}
+              </div>
+            );
           }
-          onKeyDown={(e) => handleKeyDown(e, "edit")}
-          className="w-full"
-        />
-      );
+          // Fall back to text input if no cell renderer
+          return (
+            <Input
+              ref={editingId === item.id ? editInputRef : undefined}
+              value={(editValues[column.accessorKey] as string) || ""}
+              onChange={(e) =>
+                setEditValues((prev) => ({
+                  ...prev,
+                  [column.accessorKey]: e.target.value,
+                }))
+              }
+              onKeyDown={(e) => handleKeyDown(e, "edit")}
+              className="w-full"
+            />
+          );
+        default:
+          // Default to text input
+          return (
+            <Input
+              ref={editingId === item.id ? editInputRef : undefined}
+              value={(editValues[column.accessorKey] as string) || ""}
+              onChange={(e) =>
+                setEditValues((prev) => ({
+                  ...prev,
+                  [column.accessorKey]: e.target.value,
+                }))
+              }
+              onKeyDown={(e) => handleKeyDown(e, "edit")}
+              className="w-full"
+            />
+          );
+      }
     }
 
     if (column.cell) {
       return column.cell(item);
     }
 
-    return String(item[column.accessorKey] || "");
+    // Handle different cell types for display
+    switch (column.cellType) {
+      case "checkbox":
+        return (
+          <div className="flex items-center justify-center">
+            <input
+              type="checkbox"
+              checked={Boolean(item[column.accessorKey])}
+              readOnly
+              className="h-4 w-4"
+            />
+          </div>
+        );
+      case "date":
+        const dateValue = item[column.accessorKey];
+        if (dateValue) {
+          try {
+            const date = new Date(dateValue as string);
+            return date.toLocaleDateString();
+          } catch (e) {
+            return String(dateValue);
+          }
+        }
+        return "";
+      default:
+        return String(item[column.accessorKey] || "");
+    }
   };
 
   const renderAddRow = () => {
@@ -565,19 +746,84 @@ const DataTable = <T extends { id: string }>({
       <TableRow className="bg-muted/50">
         {columns.map((column, index) => (
           <TableCell key={`add-${index}`}>
-            <Input
-              ref={index === 0 ? addInputRef : undefined}
-              value={(newItemValues[column.accessorKey] as string) || ""}
-              onChange={(e) =>
-                setNewItemValues((prev) => ({
-                  ...prev,
-                  [column.accessorKey]: e.target.value,
-                }))
-              }
-              onKeyDown={(e) => handleKeyDown(e, "add")}
-              placeholder={`Enter ${column.header.toLowerCase()}`}
-              className="w-full"
-            />
+            {column.cellType === "number" ? (
+              <Input
+                type="number"
+                ref={index === 0 ? addInputRef : undefined}
+                value={(newItemValues[column.accessorKey] as string) || ""}
+                onChange={(e) => {
+                  // Ensure non-negative values for number inputs
+                  const inputValue = e.target.value;
+                  const numValue =
+                    inputValue === ""
+                      ? ""
+                      : Math.max(0, parseFloat(inputValue) || 0);
+
+                  setNewItemValues((prev) => ({
+                    ...prev,
+                    [column.accessorKey]:
+                      e.target.type === "number" && numValue !== ""
+                        ? numValue
+                        : e.target.value,
+                  }));
+                }}
+                onKeyDown={(e) => handleKeyDown(e, "add")}
+                placeholder={`Enter ${column.header.toLowerCase()}`}
+                className="w-full"
+                min={0}
+              />
+            ) : column.cellType === "date" ? (
+              <Input
+                type="date"
+                ref={index === 0 ? addInputRef : undefined}
+                value={(newItemValues[column.accessorKey] as string) || ""}
+                onChange={(e) =>
+                  setNewItemValues((prev) => ({
+                    ...prev,
+                    [column.accessorKey]: e.target.value,
+                  }))
+                }
+                onKeyDown={(e) => handleKeyDown(e, "add")}
+                className="w-full"
+              />
+            ) : column.cellType === "checkbox" ? (
+              <div className="flex items-center justify-center">
+                <input
+                  type="checkbox"
+                  checked={Boolean(newItemValues[column.accessorKey])}
+                  onChange={(e) =>
+                    setNewItemValues((prev) => ({
+                      ...prev,
+                      [column.accessorKey]: e.target.checked,
+                    }))
+                  }
+                  className="h-4 w-4"
+                />
+              </div>
+            ) : column.cell && column.cellType === "dropdown" ? (
+              // For dropdown, we'll use the cell renderer if provided
+              <div
+                onClick={(e) => e.stopPropagation()}
+                className="w-full"
+                data-dropdown-cell="true"
+              >
+                {column.cell({ ...newItemValues, id: "new-item" } as T)}
+              </div>
+            ) : (
+              <Input
+                ref={index === 0 ? addInputRef : undefined}
+                value={(newItemValues[column.accessorKey] as string) || ""}
+                onChange={(e) =>
+                  setNewItemValues((prev) => ({
+                    ...prev,
+                    [column.accessorKey]: e.target.value,
+                  }))
+                }
+                onKeyDown={(e) => handleKeyDown(e, "add")}
+                placeholder={`Enter ${column.header.toLowerCase()}`}
+                className="w-full"
+              />
+            )}
           </TableCell>
         ))}
         <TableCell className="text-right">
