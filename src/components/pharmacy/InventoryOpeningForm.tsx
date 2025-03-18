@@ -12,11 +12,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Save, X, Printer } from "lucide-react";
+import { Save, X, Printer, Plus } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import FormField from "@/components/ui/form-field";
 import SearchableSelect from "@/components/ui/searchable-select";
 import DataTable, { Column } from "@/components/ui/data-table";
+import ItemFormModal from "@/components/pharmacy/ItemFormModal";
 
 interface InventoryItem {
   id: string;
@@ -67,6 +68,10 @@ const InventoryOpeningForm: React.FC<InventoryOpeningFormProps> = ({
 
   // Validation errors
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Item form modal state
+  const [isItemModalOpen, setIsItemModalOpen] = useState(false);
+  const [selectedItemForEdit, setSelectedItemForEdit] = useState<any>(null);
 
   // Mock data for dropdowns
   const [warehouses, setWarehouses] = useState([
@@ -340,16 +345,13 @@ const InventoryOpeningForm: React.FC<InventoryOpeningFormProps> = ({
           const purchaseRate = isPack
             ? selectedItem.packPurchasePrice
             : selectedItem.purchasePrice;
-          const qty = Math.max(0, item.qty || 0);
+          const qty = Math.max(1, item.qty || 1); // Default to 1 if not set
           const value = qty * purchaseRate;
 
           // Set default batch and expiry date if not already set
           const currentDate = new Date();
           const expiryDate =
-            item.expiryDate ||
-            new Date(currentDate.setFullYear(currentDate.getFullYear() + 1))
-              .toISOString()
-              .split("T")[0];
+            item.expiryDate || currentDate.toISOString().split("T")[0];
 
           return {
             ...item,
@@ -360,6 +362,7 @@ const InventoryOpeningForm: React.FC<InventoryOpeningFormProps> = ({
             purchaseRate: purchaseRate,
             gst: selectedItem.gst,
             value: value,
+            qty: qty,
             batchNo: item.batchNo || defaultBatchNo,
             expiryDate: expiryDate,
           };
@@ -368,7 +371,7 @@ const InventoryOpeningForm: React.FC<InventoryOpeningFormProps> = ({
 
       return {
         ...item,
-        qty: Math.max(0, item.qty || 0),
+        qty: Math.max(1, item.qty || 1), // Default to 1 if not set
         saleRate: Math.max(0, item.saleRate || 0),
         purchaseRate: Math.max(0, item.purchaseRate || 0),
         gst: Math.max(0, Math.min(100, item.gst || 0)),
@@ -468,10 +471,14 @@ const InventoryOpeningForm: React.FC<InventoryOpeningFormProps> = ({
         />
       ),
       cellType: "checkbox",
+      isPinned: true,
+      width: "80px",
     },
     {
       header: "Item",
       accessorKey: "itemName",
+      isPinned: true,
+      width: "250px",
       cell: (item) => {
         const itemOptions = items.map((i) => ({ id: i.id, name: i.itemName }));
         return (
@@ -506,18 +513,20 @@ const InventoryOpeningForm: React.FC<InventoryOpeningFormProps> = ({
                     const purchaseRate = isPack
                       ? selectedItem.packPurchasePrice
                       : selectedItem.purchasePrice;
-                    const qty = updatedItems[itemIndex].qty || 0;
+                    // Always default to 1 for new items
+                    const qty = 1;
                     const value = qty * purchaseRate;
 
                     // Set default batch and expiry date if not already set
                     const currentDate = new Date();
-                    const expiryDate =
-                      updatedItems[itemIndex].expiryDate ||
-                      new Date(
-                        currentDate.setFullYear(currentDate.getFullYear() + 1),
-                      )
-                        .toISOString()
-                        .split("T")[0];
+                    // Set expiry date to 1 year from now by default
+                    const oneYearFromNow = new Date();
+                    oneYearFromNow.setFullYear(
+                      oneYearFromNow.getFullYear() + 1,
+                    );
+                    const expiryDate = oneYearFromNow
+                      .toISOString()
+                      .split("T")[0];
 
                     const updatedItem = {
                       ...updatedItems[itemIndex],
@@ -528,8 +537,8 @@ const InventoryOpeningForm: React.FC<InventoryOpeningFormProps> = ({
                       purchaseRate: purchaseRate,
                       gst: selectedItem.gst,
                       value: value,
-                      batchNo:
-                        updatedItems[itemIndex].batchNo || defaultBatchNo,
+                      qty: qty,
+                      batchNo: defaultBatchNo,
                       expiryDate: expiryDate,
                     };
 
@@ -558,6 +567,25 @@ const InventoryOpeningForm: React.FC<InventoryOpeningFormProps> = ({
                 console.error("Could not find item with id:", item.id);
               }
             }}
+            onAddNew={() => {
+              // Open the item modal directly with default values
+              setSelectedItemForEdit({
+                itemName: "",
+                isPack: false,
+                packQty: 1,
+                packPurchasePrice: 0,
+                packSalePrice: 0,
+                purchaseRatePercentage: 15,
+                purchasePrice: 0,
+                salePrice: 0,
+                isActive: true,
+                maxSaleDiscount: 0,
+                gst: 0,
+              });
+              setIsItemModalOpen(true);
+            }}
+            addNewTitle=""
+            addNewButtonLabel=""
             placeholder="Select Item"
             className="w-full"
             error={errors[`item_${item.id}_itemId`]}
@@ -572,10 +600,14 @@ const InventoryOpeningForm: React.FC<InventoryOpeningFormProps> = ({
       header: "UOM",
       accessorKey: "uom",
       cellType: "text",
+      isPinned: true,
+      width: "100px",
     },
     {
       header: "Qty",
       accessorKey: "qty",
+      isPinned: true,
+      width: "100px",
       cell: (item) => (
         <Input
           type="number"
@@ -611,6 +643,8 @@ const InventoryOpeningForm: React.FC<InventoryOpeningFormProps> = ({
     {
       header: "Sale Rate",
       accessorKey: "saleRate",
+      isPinned: true,
+      width: "120px",
       cell: (item) => (
         <Input
           type="number"
@@ -640,6 +674,8 @@ const InventoryOpeningForm: React.FC<InventoryOpeningFormProps> = ({
     {
       header: "Purchase Rate",
       accessorKey: "purchaseRate",
+      isPinned: true,
+      width: "140px",
       cell: (item) => (
         <Input
           type="number"
@@ -675,6 +711,7 @@ const InventoryOpeningForm: React.FC<InventoryOpeningFormProps> = ({
     {
       header: "Batch No",
       accessorKey: "batchNo",
+      width: "150px",
       cell: (item) => (
         <SearchableSelect
           label=""
@@ -721,6 +758,7 @@ const InventoryOpeningForm: React.FC<InventoryOpeningFormProps> = ({
     {
       header: "Expiry Date",
       accessorKey: "expiryDate",
+      width: "150px",
       cell: (item) => (
         <Input
           type="date"
@@ -759,6 +797,7 @@ const InventoryOpeningForm: React.FC<InventoryOpeningFormProps> = ({
     {
       header: "GST %",
       accessorKey: "gst",
+      width: "100px",
       cell: (item) => (
         <Input
           type="number"
@@ -796,6 +835,7 @@ const InventoryOpeningForm: React.FC<InventoryOpeningFormProps> = ({
     {
       header: "Value",
       accessorKey: "value",
+      width: "120px",
       cell: (item) => (
         <div className="text-right font-medium">
           {(item.value || 0).toFixed(2)}
@@ -805,8 +845,57 @@ const InventoryOpeningForm: React.FC<InventoryOpeningFormProps> = ({
     },
   ];
 
+  // Handle saving a new item from the modal
+  const handleSaveItem = (itemData: any) => {
+    console.log("New item saved:", itemData);
+
+    // Add the new item to the items list
+    const newItem = {
+      id: itemData.id || itemData.itemCode,
+      itemCode: itemData.itemCode,
+      itemName: itemData.itemName,
+      genericName: itemData.genericName,
+      uom:
+        itemData.uom === "1"
+          ? "Tablet"
+          : itemData.uom === "2"
+            ? "Bottle"
+            : "Box",
+      isPack: itemData.isPack,
+      packQty: itemData.packQty,
+      packSalePrice: itemData.packSalePrice,
+      packPurchasePrice: itemData.packPurchasePrice,
+      salePrice: itemData.salePrice,
+      purchasePrice: itemData.purchasePrice,
+      gst: itemData.gst,
+      isActive: itemData.isActive,
+    };
+
+    // Add to the items array
+    setItems((prevItems) => [...prevItems, newItem]);
+
+    // Show success toast
+    toast({
+      title: "Success",
+      description: `Item '${itemData.itemName}' added successfully`,
+      duration: 3000,
+    });
+
+    // Close the modal
+    setIsItemModalOpen(false);
+    setSelectedItemForEdit(null);
+  };
+
   return (
     <form onSubmit={(e) => handleSubmit(e)}>
+      {/* Item Form Modal */}
+      <ItemFormModal
+        open={isItemModalOpen}
+        onOpenChange={setIsItemModalOpen}
+        onSave={handleSaveItem}
+        initialData={selectedItemForEdit}
+      />
+
       <Card className="w-full">
         <CardHeader>
           <CardTitle>Inventory Opening</CardTitle>
@@ -901,6 +990,16 @@ const InventoryOpeningForm: React.FC<InventoryOpeningFormProps> = ({
               keyboardShortcuts={true}
               addStartEntry={true}
               noDataText="No inventory items added yet"
+              enableColumnConfiguration={true}
+              defaultPinnedColumns={[
+                "isPack",
+                "itemName",
+                "uom",
+                "qty",
+                "saleRate",
+                "purchaseRate",
+              ]}
+              horizontalScroll={true}
             />
           </div>
 

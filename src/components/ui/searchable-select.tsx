@@ -67,21 +67,14 @@ const SearchableSelect: React.FC<SearchableSelectProps> = ({
   const [searchTerm, setSearchTerm] = useState("");
   const [newItemName, setNewItemName] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [internalValue, setInternalValue] = useState(value);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
-  // Log when value changes and ensure the select reflects the current value
+  // Update internal value when external value changes
   useEffect(() => {
-    console.log("SearchableSelect value:", value);
-    // Force the select to update its value if it doesn't match
-    if (value && document.activeElement !== searchInputRef.current) {
-      console.log("Forcing select value update to:", value);
-      // Force a re-render to ensure the select value is updated
-      const selectElement = document.querySelector(`[data-value="${value}"]`);
-      if (selectElement) {
-        console.log("Found select element for value:", value);
-      }
-    }
+    setInternalValue(value);
+    console.log("SearchableSelect value updated:", value);
   }, [value]);
 
   // Filter options based on search term
@@ -91,15 +84,24 @@ const SearchableSelect: React.FC<SearchableSelectProps> = ({
 
   // Handle adding a new item
   const handleAddNew = () => {
-    if (newItemName.trim() && onAddNew) {
-      onAddNew(newItemName.trim());
-      setNewItemName("");
-      setIsDialogOpen(false);
-      toast({
-        title: "Success",
-        description: `${addNewLabel} added successfully`,
-        duration: 3000,
-      });
+    if (onAddNew) {
+      // If there's no title, just call onAddNew directly without showing dialog
+      if (!addNewTitle) {
+        onAddNew("");
+        return;
+      }
+
+      // Otherwise, use the dialog input value
+      if (newItemName.trim()) {
+        onAddNew(newItemName.trim());
+        setNewItemName("");
+        setIsDialogOpen(false);
+        toast({
+          title: "Success",
+          description: `${addNewLabel} added successfully`,
+          duration: 3000,
+        });
+      }
     }
   };
 
@@ -128,14 +130,24 @@ const SearchableSelect: React.FC<SearchableSelectProps> = ({
     e.stopPropagation();
   };
 
-  const selectedOption = options.find((option) => option.id === value);
+  // Handle value change
+  const handleValueChange = (val: string) => {
+    console.log("handleValueChange called with:", val);
+    setInternalValue(val);
+    // Clear search term
+    setSearchTerm("");
+    // Call the parent's onValueChange
+    onValueChange(val);
+  };
+
+  const selectedOption = options.find((option) => option.id === internalValue);
   console.log(
     "Selected option:",
     selectedOption,
     "from options:",
     options,
     "with value:",
-    value,
+    internalValue,
   );
 
   return (
@@ -143,66 +155,78 @@ const SearchableSelect: React.FC<SearchableSelectProps> = ({
       <Label className="flex">
         {label} {required && <span className="text-red-500 ml-1">*</span>}
       </Label>
-      <div className="flex gap-2">
-        <Select
-          value={value}
-          onValueChange={(val) => {
-            console.log("Select value changed to:", val);
-            // Ensure we're not in the middle of a search when changing value
-            if (searchTerm) {
-              setSearchTerm("");
-            }
-            // Call the onValueChange handler immediately
-            onValueChange(val);
-          }}
-          onOpenChange={handleOpenChange}
-        >
-          <SelectTrigger
-            className={cn(
-              "w-full",
-              error ? "border-red-500 focus-visible:ring-red-500" : "",
-            )}
-            data-value={value}
+      <div className="flex w-full gap-2">
+        <div className="w-full">
+          <Select
+            value={internalValue}
+            onValueChange={handleValueChange}
+            onOpenChange={handleOpenChange}
           >
-            <SelectValue placeholder={placeholder}>
-              {showSelectedLabel && selectedOption ? selectedOption.name : null}
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            <div
-              className="flex items-center px-3 py-2 sticky top-0 bg-white z-10"
-              onClick={handleSearchClick}
+            <SelectTrigger
+              className={cn(
+                "w-full",
+                error ? "border-red-500 focus-visible:ring-red-500" : "",
+              )}
+              data-value={internalValue}
+              autoFocus={autoFocus}
             >
-              <Search className="h-4 w-4 mr-2 text-muted-foreground" />
-              <Input
-                ref={searchInputRef}
-                placeholder={`Search ${label.toLowerCase()}...`}
-                className="border-none focus-visible:ring-0 focus-visible:ring-offset-0 h-8 p-0"
-                value={searchTerm}
-                onChange={handleSearchChange}
-              />
-            </div>
-            {filteredOptions.length > 0 ? (
-              filteredOptions.map((option) => (
-                <SelectItem key={option.id} value={option.id}>
-                  {option.name}
-                </SelectItem>
-              ))
-            ) : (
-              <div className="px-2 py-4 text-center text-sm text-muted-foreground">
-                No options found
+              <SelectValue placeholder={placeholder}>
+                {showSelectedLabel && selectedOption
+                  ? selectedOption.name
+                  : null}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <div
+                className="flex items-center px-3 py-2 sticky top-0 bg-white z-10 dark:bg-gray-800"
+                onClick={handleSearchClick}
+              >
+                <Search className="h-4 w-4 mr-2 text-muted-foreground" />
+                <Input
+                  ref={searchInputRef}
+                  placeholder={`Search ${label.toLowerCase()}...`}
+                  className="border-none focus-visible:ring-0 focus-visible:ring-offset-0 h-8 p-0"
+                  value={searchTerm}
+                  onChange={handleSearchChange}
+                />
               </div>
-            )}
-          </SelectContent>
-        </Select>
+              <div className="max-h-[200px] overflow-y-auto">
+                {filteredOptions.length > 0 ? (
+                  filteredOptions.map((option) => (
+                    <SelectItem key={option.id} value={option.id}>
+                      {option.name}
+                    </SelectItem>
+                  ))
+                ) : (
+                  <div className="px-2 py-4 text-center text-sm text-muted-foreground">
+                    No options found
+                  </div>
+                )}
+              </div>
+            </SelectContent>
+          </Select>
+        </div>
 
         {onAddNew && (
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            onClick={() => {
+              // If we're not using the dialog (no title), call onAddNew directly
+              if (!addNewTitle) {
+                onAddNew("");
+              } else {
+                setIsDialogOpen(true);
+              }
+            }}
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+        )}
+
+        {onAddNew && addNewTitle && (
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button type="button" variant="outline" size="icon">
-                <Plus className="h-4 w-4" />
-              </Button>
-            </DialogTrigger>
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>{addNewTitle}</DialogTitle>
