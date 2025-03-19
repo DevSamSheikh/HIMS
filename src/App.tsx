@@ -29,10 +29,10 @@ import PurchaseReturnList from "./components/pharmacy/purchase/PurchaseReturnLis
 import PurchaseReturnForm from "./components/pharmacy/purchase/PurchaseReturnForm";
 import PurchaseReportList from "./components/pharmacy/purchase/PurchaseReportList";
 import SalesLayout from "./components/pharmacy/sales/SalesLayout";
-import SaleInvoiceList from "./components/pharmacy/sales/SaleInvoiceList";
-import SaleInvoiceForm from "./components/pharmacy/sales/SaleInvoiceForm";
-import SaleReturnList from "./components/pharmacy/sales/SaleReturnList";
-import SaleReturnForm from "./components/pharmacy/sales/SaleReturnForm";
+import SalesInvoiceList from "./components/pharmacy/sales/SalesInvoiceList";
+import SalesInvoiceForm from "./components/pharmacy/sales/SalesInvoiceForm";
+import SalesReturnList from "./components/pharmacy/sales/SalesReturnList";
+import SalesReturnForm from "./components/pharmacy/sales/SalesReturnForm";
 import SalesReportList from "./components/pharmacy/sales/SalesReportList";
 
 // Lazy load dashboard components
@@ -131,12 +131,15 @@ function App() {
               />
               <Route path="sales" element={<SalesLayout />}>
                 <Route index element={<Navigate to="invoices" replace />} />
-                <Route path="invoices" element={<SaleInvoiceList />} />
-                <Route path="invoices/new" element={<SaleInvoiceForm />} />
-                <Route path="invoices/edit/:id" element={<SaleInvoiceForm />} />
-                <Route path="returns" element={<SaleReturnList />} />
-                <Route path="returns/new" element={<SaleReturnForm />} />
-                <Route path="returns/edit/:id" element={<SaleReturnForm />} />
+                <Route path="invoices" element={<SalesInvoiceList />} />
+                <Route path="invoices/new" element={<SalesInvoiceForm />} />
+                <Route
+                  path="invoices/edit/:id"
+                  element={<SalesInvoiceForm />}
+                />
+                <Route path="returns" element={<SalesReturnList />} />
+                <Route path="returns/new" element={<SalesReturnForm />} />
+                <Route path="returns/edit/:id" element={<SalesReturnForm />} />
                 <Route path="reports" element={<SalesReportList />} />
               </Route>
             </Route>

@@ -21,9 +21,9 @@ const SalesLayout = () => {
         onValueChange={handleTabChange}
         className="w-full"
       >
-        <TabsList className="grid grid-cols-3 w-full max-w-2xl mb-8">
-          <TabsTrigger value="invoices">Sale Invoices</TabsTrigger>
-          <TabsTrigger value="returns">Sale Returns</TabsTrigger>
+        <TabsList className="grid grid-cols-3 w-full max-w-3xl mb-8">
+          <TabsTrigger value="invoices">Sales Invoices</TabsTrigger>
+          <TabsTrigger value="returns">Sales Returns</TabsTrigger>
           <TabsTrigger value="reports">Sales Reports</TabsTrigger>
         </TabsList>
 
