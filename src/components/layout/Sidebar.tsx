@@ -543,6 +543,7 @@ const Sidebar = ({
         { id: "items", label: "Items", href: "/pharmacy/items" },
         { id: "customers", label: "Customers", href: "/pharmacy/customers" },
         { id: "inventory", label: "Inventory", href: "/pharmacy/inventory" },
+        { id: "purchase", label: "Purchase", href: "/pharmacy/purchase" },
         {
           id: "prescriptions",
           label: "Prescriptions",

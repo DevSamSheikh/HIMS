@@ -71,6 +71,13 @@ export interface Column<T> {
   cellType?: "text" | "number" | "date" | "checkbox" | "dropdown";
   width?: string;
   hidden?: boolean;
+  required?: boolean;
+  isValid?: (value: any) => boolean | { valid: boolean; message: string };
+  placeholder?: string;
+  min?: number;
+  max?: number;
+  step?: string;
+  options?: { id: string; name: string }[];
 }
 
 export interface DataTableProps<T extends { id: string }> {
@@ -98,6 +105,7 @@ export interface DataTableProps<T extends { id: string }> {
   defaultPinnedColumns?: string[];
   onColumnConfigChange?: (columns: Column<T>[]) => void;
   horizontalScroll?: boolean;
+  disableSaveAnimation?: boolean;
 }
 
 function DataTable<T extends { id: string }>(props: DataTableProps<T>) {
@@ -126,6 +134,7 @@ function DataTable<T extends { id: string }>(props: DataTableProps<T>) {
     defaultPinnedColumns = [],
     onColumnConfigChange,
     horizontalScroll = false,
+    disableSaveAnimation = false,
   } = props;
 
   const [items, setItems] = useState<T[]>(data);
@@ -167,6 +176,8 @@ function DataTable<T extends { id: string }>(props: DataTableProps<T>) {
     CANCEL: "Escape",
     EDIT: "e",
     DELETE: "d",
+    NEXT_FIELD: "Tab",
+    PREV_FIELD: "Shift+Tab",
   };
 
   // Focus input when editing or adding
@@ -176,18 +187,20 @@ function DataTable<T extends { id: string }>(props: DataTableProps<T>) {
     }
   }, [editingId]);
 
+  // Focus on add input when isAdding changes
+  useEffect(() => {
+    if (isAdding && addInputRef.current) {
+      setTimeout(() => {
+        if (addInputRef.current) {
+          addInputRef.current.focus();
+        }
+      }, 100);
+    }
+  }, [isAdding]);
+
   // Scroll to the add row when isAdding changes
   useEffect(() => {
     if (isAdding) {
-      // Focus on the input field
-      if (addInputRef.current) {
-        setTimeout(() => {
-          if (addInputRef.current) {
-            addInputRef.current.focus();
-          }
-        }, 0);
-      }
-
       // Scroll to the add row
       setTimeout(() => {
         const tableElement = document.getElementById("data-table-container");
@@ -208,8 +221,23 @@ function DataTable<T extends { id: string }>(props: DataTableProps<T>) {
 
       // Add event listener to prevent focus loss on dropdown cells
       const handleFocusOut = (e: FocusEvent) => {
-        if (isAdding && addInputRef.current && !e.relatedTarget) {
-          // If focus is lost and not to another element, refocus the input
+        // Check if the related target is within a dropdown or popover
+        const isInDropdown =
+          e.relatedTarget &&
+          ((e.relatedTarget as HTMLElement).closest(
+            '[data-dropdown-cell="true"]',
+          ) ||
+            (e.relatedTarget as HTMLElement).closest('[role="dialog"]') ||
+            (e.relatedTarget as HTMLElement).closest('[role="listbox"]') ||
+            (e.relatedTarget as HTMLElement).closest('[data-state="open"]'));
+
+        if (
+          isAdding &&
+          addInputRef.current &&
+          !e.relatedTarget &&
+          !isInDropdown
+        ) {
+          // If focus is lost and not to another element or dropdown, refocus the input
           setTimeout(() => {
             if (addInputRef.current) {
               addInputRef.current.focus();
@@ -230,7 +258,15 @@ function DataTable<T extends { id: string }>(props: DataTableProps<T>) {
     console.log("Data table received new data:", data);
     // Create a new array to ensure React detects the change
     setItems([...data]);
-  }, [data]);
+    // Only reset adding state when data changes and it's not just an update to existing items
+    if (data.length !== items.length) {
+      setIsAdding(false);
+      // Clear form values after a short delay to ensure state updates properly
+      setTimeout(() => {
+        setNewItemValues({});
+      }, 50);
+    }
+  }, [data, items.length]);
 
   // Update columns when columns prop changes
   useEffect(() => {
@@ -261,13 +297,21 @@ function DataTable<T extends { id: string }>(props: DataTableProps<T>) {
       // Don't trigger shortcuts when typing in input fields
       if (
         document.activeElement instanceof HTMLInputElement ||
-        document.activeElement instanceof HTMLTextAreaElement
+        document.activeElement instanceof HTMLTextAreaElement ||
+        document.activeElement instanceof HTMLSelectElement ||
+        document.activeElement?.hasAttribute("contenteditable") ||
+        document.activeElement?.closest('[data-dropdown-cell="true"]')
       ) {
         return;
       }
 
+      // Check if any dropdown is open
+      const isDropdownOpen = document.querySelector('[data-state="open"]');
+      if (isDropdownOpen) return;
+
       if (e.key === SHORTCUTS.ADD && !isAdding && !editingId) {
         e.preventDefault();
+        console.log("Add shortcut triggered");
         handleAddNew();
       } else if (
         e.key === SHORTCUTS.EDIT &&
@@ -325,16 +369,69 @@ function DataTable<T extends { id: string }>(props: DataTableProps<T>) {
 
   const handleSave = () => {
     if (editingId) {
-      // Basic validation - ensure required fields aren't empty
-      const hasEmptyRequiredField = columns.some((column) => {
+      // Enhanced validation - check required fields and custom validation
+      const validationErrors: { field: string; message: string }[] = [];
+
+      tableColumns.forEach((column) => {
         const value = editValues[column.accessorKey];
-        return value === "" || value === undefined;
+        const fieldName = column.header;
+
+        // Check required fields
+        if (
+          column.required &&
+          (value === "" || value === undefined || value === null)
+        ) {
+          validationErrors.push({
+            field: String(column.accessorKey),
+            message: `${fieldName} is required`,
+          });
+        }
+
+        // Check custom validation if provided
+        if (value !== undefined && value !== null && column.isValid) {
+          const validationResult = column.isValid(value);
+
+          if (typeof validationResult === "object") {
+            if (!validationResult.valid) {
+              validationErrors.push({
+                field: String(column.accessorKey),
+                message: validationResult.message,
+              });
+            }
+          } else if (!validationResult) {
+            validationErrors.push({
+              field: String(column.accessorKey),
+              message: `${fieldName} has an invalid value`,
+            });
+          }
+        }
+
+        // Type-specific validations
+        if (
+          column.cellType === "number" &&
+          value !== undefined &&
+          value !== null
+        ) {
+          if (column.min !== undefined && Number(value) < column.min) {
+            validationErrors.push({
+              field: String(column.accessorKey),
+              message: `${fieldName} must be at least ${column.min}`,
+            });
+          }
+          if (column.max !== undefined && Number(value) > column.max) {
+            validationErrors.push({
+              field: String(column.accessorKey),
+              message: `${fieldName} must be at most ${column.max}`,
+            });
+          }
+        }
       });
 
-      if (hasEmptyRequiredField) {
+      if (validationErrors.length > 0) {
+        // Show the first error message
         toast({
           title: "Validation Error",
-          description: "Required fields cannot be empty",
+          description: validationErrors[0].message,
           variant: "destructive",
         });
         return;
@@ -345,7 +442,7 @@ function DataTable<T extends { id: string }>(props: DataTableProps<T>) {
       const isDuplicate = items.some(
         (item) =>
           item.id !== editingId &&
-          columns.some((column) => {
+          tableColumns.some((column) => {
             const key = column.accessorKey;
             return item[key] === editValues[key];
           }),
@@ -454,73 +551,152 @@ function DataTable<T extends { id: string }>(props: DataTableProps<T>) {
   const handleAddNew = () => {
     // Initialize with empty values to ensure the form renders properly
     const emptyValues: Partial<T> = {};
-    columns.forEach((column) => {
+    tableColumns.forEach((column) => {
       if (column.cellType === "number") {
-        emptyValues[column.accessorKey] = 0 as any;
+        // Use min value if provided, otherwise default to 0
+        emptyValues[column.accessorKey] = (
+          column.min !== undefined ? column.min : 0
+        ) as any;
       } else if (column.cellType === "checkbox") {
         emptyValues[column.accessorKey] = false as any;
       } else if (column.cellType === "date") {
-        emptyValues[column.accessorKey] = "" as any;
+        // Default to today's date for date fields
+        emptyValues[column.accessorKey] = new Date()
+          .toISOString()
+          .split("T")[0] as any;
+      } else if (
+        column.cellType === "dropdown" &&
+        column.options &&
+        column.options.length > 0
+      ) {
+        // Default to first option for dropdowns
+        emptyValues[column.accessorKey] = column.options[0].id as any;
       } else {
         emptyValues[column.accessorKey] = "" as any;
       }
     });
 
-    // Set both states in a single render cycle
-    setNewItemValues(emptyValues);
-    setIsAdding(true);
+    console.log("Initializing new item with values:", emptyValues);
 
-    // Force a re-render to ensure the add row is displayed
+    // Always set to false first to ensure state is reset
+    setIsAdding(false);
+
+    // Use setTimeout to ensure the state update has time to process
     setTimeout(() => {
-      const tableElement = document.getElementById("data-table-container");
-      if (tableElement) {
-        if (!useAddStartEntry) {
-          tableElement.scrollTop = tableElement.scrollHeight;
-        } else {
-          tableElement.scrollTop = 0;
+      // Set both states in a single render cycle
+      setNewItemValues({ ...emptyValues });
+      setIsAdding(true);
+
+      // Force a re-render to ensure the add row is displayed
+      setTimeout(() => {
+        const tableElement = document.getElementById("data-table-container");
+        if (tableElement) {
+          if (!useAddStartEntry) {
+            tableElement.scrollTop = tableElement.scrollHeight;
+          } else {
+            tableElement.scrollTop = 0;
+          }
         }
-      }
-    }, 50);
+      }, 50);
+    }, 10);
   };
 
   const handleAddSave = () => {
     try {
-      // Basic validation - ensure required fields aren't empty
-      // Temporarily disable strict validation to allow adding items
-      const hasEmptyRequiredField = false; // Disable validation check
+      console.log("handleAddSave called with newItemValues:", newItemValues);
 
-      if (hasEmptyRequiredField) {
+      // Enhanced validation for adding new items
+      const validationErrors: { field: string; message: string }[] = [];
+
+      tableColumns.forEach((column) => {
+        const value = newItemValues[column.accessorKey];
+        const fieldName = column.header;
+
+        // Check required fields
+        if (
+          column.required &&
+          (value === "" || value === undefined || value === null)
+        ) {
+          validationErrors.push({
+            field: String(column.accessorKey),
+            message: `${fieldName} is required`,
+          });
+        }
+
+        // Check custom validation if provided
+        if (value !== undefined && value !== null && column.isValid) {
+          const validationResult = column.isValid(value);
+
+          if (typeof validationResult === "object") {
+            if (!validationResult.valid) {
+              validationErrors.push({
+                field: String(column.accessorKey),
+                message: validationResult.message,
+              });
+            }
+          } else if (!validationResult) {
+            validationErrors.push({
+              field: String(column.accessorKey),
+              message: `${fieldName} has an invalid value`,
+            });
+          }
+        }
+
+        // Type-specific validations
+        if (
+          column.cellType === "number" &&
+          value !== undefined &&
+          value !== null
+        ) {
+          if (column.min !== undefined && Number(value) < column.min) {
+            validationErrors.push({
+              field: String(column.accessorKey),
+              message: `${fieldName} must be at least ${column.min}`,
+            });
+          }
+          if (column.max !== undefined && Number(value) > column.max) {
+            validationErrors.push({
+              field: String(column.accessorKey),
+              message: `${fieldName} must be at most ${column.max}`,
+            });
+          }
+        }
+      });
+
+      if (validationErrors.length > 0) {
+        // Show the first error message
         toast({
           title: "Validation Error",
-          description: "Required fields cannot be empty",
+          description: validationErrors[0].message,
           variant: "destructive",
         });
         return;
       }
 
-      // Check for duplicates if needed
-      // Temporarily disable duplicate check to allow adding items
-      const isDuplicate = false; // Disable duplicate check
+      // Create a unique ID for the new item
+      const newId = `item-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
-      if (isDuplicate) {
-        toast({
-          title: "Validation Error",
-          description: "A duplicate item already exists",
-          variant: "destructive",
-        });
-        return;
-      }
+      // Create a complete item with all required properties
+      const newItem = { id: newId } as T;
 
-      const newItem = {
-        id: `item-${Date.now()}`,
-        ...newItemValues,
-      } as T;
+      // Add all properties from newItemValues
+      Object.keys(newItemValues).forEach((key) => {
+        (newItem as any)[key] = newItemValues[key as keyof T];
+      });
 
       console.log("Adding new item:", newItem);
 
-      const updatedItems = useAddStartEntry
-        ? [newItem, ...items]
-        : [...items, newItem];
+      // Create a new array for updated items to ensure proper state update
+      let updatedItems: T[];
+
+      // Add the new item to the beginning or end based on the setting
+      if (useAddStartEntry) {
+        updatedItems = [newItem, ...items];
+      } else {
+        updatedItems = [...items, newItem];
+      }
+
+      console.log("Updated items array:", updatedItems);
 
       // First update the local state
       setItems(updatedItems);
@@ -528,56 +704,91 @@ function DataTable<T extends { id: string }>(props: DataTableProps<T>) {
       // Then call onSave if provided
       if (onSave) {
         console.log("Calling onSave with updated items:", updatedItems);
-        onSave(updatedItems);
+        if (disableSaveAnimation) {
+          onSave(updatedItems);
+        } else {
+          // Show success animation
+          setShowSuccessAnimation(true);
+          onSave(updatedItems);
+        }
       }
 
-      toast({
-        title: "Success",
-        description: (
-          <div className="flex items-center space-x-2">
-            <div className="w-6 h-6">
-              <LottiePlayer
-                src="https://assets1.lottiefiles.com/packages/lf20_s2lryxtd.json"
-                background="transparent"
-                speed={1}
-                style={{ width: "100%", height: "100%" }}
-                autoplay={true}
-                loop={false}
-              />
+      if (!disableSaveAnimation) {
+        toast({
+          title: "Success",
+          description: (
+            <div className="flex items-center space-x-2">
+              <div className="w-6 h-6">
+                <LottiePlayer
+                  src="https://assets1.lottiefiles.com/packages/lf20_s2lryxtd.json"
+                  background="transparent"
+                  speed={1}
+                  style={{ width: "100%", height: "100%" }}
+                  autoplay={true}
+                  loop={false}
+                />
+              </div>
+              <span>New item added successfully</span>
             </div>
-            <span>New item added successfully</span>
-          </div>
-        ),
-      });
+          ),
+        });
+      } else {
+        toast({
+          title: "Success",
+          description: "New item added successfully",
+        });
+      }
 
-      // Show success animation
-      setShowSuccessAnimation(true);
-
-      // Reset states after successful add
+      // Reset states after successful add - important to set isAdding to false first
       setIsAdding(false);
-      setNewItemValues({});
+      // Clear the form values after a short delay to ensure state updates properly
+      setTimeout(() => {
+        setNewItemValues({});
+      }, 50);
+
+      // Add a new row after a short delay if needed
+      if (items.length === 0) {
+        setTimeout(() => {
+          handleAddNew();
+        }, 300);
+      }
     } catch (error) {
       console.error("Error in handleAddSave:", error);
       toast({
         title: "Error",
-        description: "An error occurred while adding the item",
+        description:
+          "An error occurred while adding the item: " +
+          (error instanceof Error ? error.message : String(error)),
         variant: "destructive",
       });
     }
   };
 
   const handleAddCancel = () => {
+    console.log("Cancelling add operation");
     setIsAdding(false);
-    setNewItemValues({});
+    // Clear form values after a short delay to ensure state updates properly
+    setTimeout(() => {
+      setNewItemValues({});
+    }, 50);
   };
 
   const handleKeyDown = (e: KeyboardEvent, type: "edit" | "add") => {
-    if (e.key === SHORTCUTS.SAVE) {
+    // Check if any dropdown is open
+    const isDropdownOpen = document.querySelector('[data-state="open"]');
+
+    if (e.key === SHORTCUTS.SAVE && !isDropdownOpen) {
       e.preventDefault();
+      console.log(
+        `${type === "edit" ? "Edit" : "Add"} save shortcut triggered`,
+      );
       if (type === "edit") handleSave();
       else handleAddSave();
-    } else if (e.key === SHORTCUTS.CANCEL) {
+    } else if (e.key === SHORTCUTS.CANCEL && !isDropdownOpen) {
       e.preventDefault();
+      console.log(
+        `${type === "edit" ? "Edit" : "Add"} cancel shortcut triggered`,
+      );
       if (type === "edit") handleCancel();
       else handleAddCancel();
     } else if (e.key === "Tab") {
@@ -717,10 +928,11 @@ function DataTable<T extends { id: string }>(props: DataTableProps<T>) {
               onChange={(e) => {
                 // Ensure non-negative values for number inputs
                 const inputValue = e.target.value;
+                const minValue = column.min !== undefined ? column.min : 0;
                 const numValue =
                   inputValue === ""
                     ? ""
-                    : Math.max(0, parseFloat(inputValue) || 0);
+                    : Math.max(minValue, parseFloat(inputValue) || 0);
 
                 setEditValues((prev) => ({
                   ...prev,
@@ -731,8 +943,14 @@ function DataTable<T extends { id: string }>(props: DataTableProps<T>) {
                 }));
               }}
               onKeyDown={(e) => handleKeyDown(e, "edit")}
-              className="w-full"
-              min={0}
+              className={cn(
+                "w-full",
+                column.required && "border-l-2 border-l-primary",
+              )}
+              min={column.min !== undefined ? column.min : 0}
+              max={column.max}
+              step={column.step || "1"}
+              placeholder={column.placeholder}
             />
           );
         case "date":
@@ -748,7 +966,11 @@ function DataTable<T extends { id: string }>(props: DataTableProps<T>) {
                 }))
               }
               onKeyDown={(e) => handleKeyDown(e, "edit")}
-              className="w-full"
+              className={cn(
+                "w-full",
+                column.required && "border-l-2 border-l-primary",
+              )}
+              placeholder={column.placeholder}
             />
           );
         case "checkbox":
@@ -792,7 +1014,13 @@ function DataTable<T extends { id: string }>(props: DataTableProps<T>) {
                 }))
               }
               onKeyDown={(e) => handleKeyDown(e, "edit")}
-              className="w-full"
+              className={cn(
+                "w-full",
+                column.required && "border-l-2 border-l-primary",
+              )}
+              placeholder={
+                column.placeholder || `Enter ${column.header.toLowerCase()}`
+              }
             />
           );
         default:
@@ -808,7 +1036,13 @@ function DataTable<T extends { id: string }>(props: DataTableProps<T>) {
                 }))
               }
               onKeyDown={(e) => handleKeyDown(e, "edit")}
-              className="w-full"
+              className={cn(
+                "w-full",
+                column.required && "border-l-2 border-l-primary",
+              )}
+              placeholder={
+                column.placeholder || `Enter ${column.header.toLowerCase()}`
+              }
             />
           );
       }
@@ -850,8 +1084,10 @@ function DataTable<T extends { id: string }>(props: DataTableProps<T>) {
   const renderAddRow = () => {
     if (!isAdding) return null;
 
+    console.log("Rendering add row with values:", newItemValues);
+
     return (
-      <TableRow className="bg-muted/50">
+      <TableRow className="bg-muted/50" data-testid="add-row">
         {tableColumns
           .filter((column) => !column.hidden)
           .map((column, index) => (
@@ -872,23 +1108,35 @@ function DataTable<T extends { id: string }>(props: DataTableProps<T>) {
                   onChange={(e) => {
                     // Ensure non-negative values for number inputs
                     const inputValue = e.target.value;
+                    const minValue = column.min !== undefined ? column.min : 0;
                     const numValue =
                       inputValue === ""
                         ? ""
-                        : Math.max(0, parseFloat(inputValue) || 0);
+                        : Math.max(minValue, parseFloat(inputValue) || 0);
 
-                    setNewItemValues((prev) => ({
-                      ...prev,
-                      [column.accessorKey]:
-                        e.target.type === "number" && numValue !== ""
-                          ? numValue
-                          : e.target.value,
-                    }));
+                    setNewItemValues((prev) => {
+                      const updated = {
+                        ...prev,
+                        [column.accessorKey]:
+                          e.target.type === "number" && numValue !== ""
+                            ? numValue
+                            : e.target.value,
+                      };
+                      console.log("Updated newItemValues:", updated);
+                      return updated;
+                    });
                   }}
                   onKeyDown={(e) => handleKeyDown(e, "add")}
-                  placeholder={`Enter ${column.header.toLowerCase()}`}
-                  className="w-full"
-                  min={0}
+                  placeholder={
+                    column.placeholder || `Enter ${column.header.toLowerCase()}`
+                  }
+                  className={cn(
+                    "w-full",
+                    column.required && "border-l-2 border-l-primary",
+                  )}
+                  min={column.min !== undefined ? column.min : 0}
+                  max={column.max}
+                  step={column.step || "1"}
                 />
               ) : column.cellType === "date" ? (
                 <Input
@@ -896,13 +1144,21 @@ function DataTable<T extends { id: string }>(props: DataTableProps<T>) {
                   ref={index === 0 ? addInputRef : undefined}
                   value={(newItemValues[column.accessorKey] as string) || ""}
                   onChange={(e) =>
-                    setNewItemValues((prev) => ({
-                      ...prev,
-                      [column.accessorKey]: e.target.value,
-                    }))
+                    setNewItemValues((prev) => {
+                      const updated = {
+                        ...prev,
+                        [column.accessorKey]: e.target.value,
+                      };
+                      console.log("Updated newItemValues:", updated);
+                      return updated;
+                    })
                   }
                   onKeyDown={(e) => handleKeyDown(e, "add")}
-                  className="w-full"
+                  className={cn(
+                    "w-full",
+                    column.required && "border-l-2 border-l-primary",
+                  )}
+                  placeholder={column.placeholder}
                 />
               ) : column.cellType === "checkbox" ? (
                 <div className="flex items-center justify-center">
@@ -910,10 +1166,14 @@ function DataTable<T extends { id: string }>(props: DataTableProps<T>) {
                     type="checkbox"
                     checked={Boolean(newItemValues[column.accessorKey])}
                     onChange={(e) =>
-                      setNewItemValues((prev) => ({
-                        ...prev,
-                        [column.accessorKey]: e.target.checked,
-                      }))
+                      setNewItemValues((prev) => {
+                        const updated = {
+                          ...prev,
+                          [column.accessorKey]: e.target.checked,
+                        };
+                        console.log("Updated newItemValues:", updated);
+                        return updated;
+                      })
                     }
                     className="h-4 w-4"
                   />
@@ -932,14 +1192,23 @@ function DataTable<T extends { id: string }>(props: DataTableProps<T>) {
                   ref={index === 0 ? addInputRef : undefined}
                   value={(newItemValues[column.accessorKey] as string) || ""}
                   onChange={(e) =>
-                    setNewItemValues((prev) => ({
-                      ...prev,
-                      [column.accessorKey]: e.target.value,
-                    }))
+                    setNewItemValues((prev) => {
+                      const updated = {
+                        ...prev,
+                        [column.accessorKey]: e.target.value,
+                      };
+                      console.log("Updated newItemValues:", updated);
+                      return updated;
+                    })
                   }
                   onKeyDown={(e) => handleKeyDown(e, "add")}
-                  placeholder={`Enter ${column.header.toLowerCase()}`}
-                  className="w-full"
+                  placeholder={
+                    column.placeholder || `Enter ${column.header.toLowerCase()}`
+                  }
+                  className={cn(
+                    "w-full",
+                    column.required && "border-l-2 border-l-primary",
+                  )}
                 />
               )}
             </TableCell>
@@ -948,18 +1217,30 @@ function DataTable<T extends { id: string }>(props: DataTableProps<T>) {
           <Button
             variant="ghost"
             size="icon"
-            onClick={handleAddSave}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              console.log("Save button clicked");
+              handleAddSave();
+            }}
             className="mr-2 h-8 w-8 text-green-600"
             title={`Save (${SHORTCUTS.SAVE})`}
+            data-testid="add-save-button"
           >
             <Check className="h-4 w-4" />
           </Button>
           <Button
             variant="ghost"
             size="icon"
-            onClick={handleAddCancel}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              console.log("Cancel button clicked");
+              handleAddCancel();
+            }}
             className="h-8 w-8 text-red-600"
             title={`Cancel (${SHORTCUTS.CANCEL})`}
+            data-testid="add-cancel-button"
           >
             <X className="h-4 w-4" />
           </Button>
@@ -1102,8 +1383,16 @@ function DataTable<T extends { id: string }>(props: DataTableProps<T>) {
             </DropdownMenuContent>
           </DropdownMenu>
           <Button
-            onClick={handleAddNew}
-            disabled={false}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              console.log("Add button clicked");
+              // Force isAdding to false first to ensure we can add again
+              setIsAdding(false);
+              setNewItemValues({});
+              // Use setTimeout to ensure state update has processed
+              setTimeout(() => handleAddNew(), 20);
+            }}
             title={`Add (${SHORTCUTS.ADD})`}
             data-testid="add-button"
             className="bg-primary hover:bg-primary/90"
@@ -1122,18 +1411,7 @@ function DataTable<T extends { id: string }>(props: DataTableProps<T>) {
         id="data-table-container"
       >
         <Table>
-          {caption && (
-            <TableCaption>
-              {filteredItems.length === 0
-                ? noDataText
-                : isPaginated
-                  ? `Showing ${startIndex + 1} to ${Math.min(
-                      startIndex + itemsPerPage,
-                      filteredItems.length,
-                    )} of ${filteredItems.length} items`
-                  : `Showing ${filteredItems.length} items`}
-            </TableCaption>
-          )}
+          {caption && <TableCaption>{caption}</TableCaption>}
           <TableHeader>
             <TableRow>
               {tableColumns
@@ -1142,120 +1420,55 @@ function DataTable<T extends { id: string }>(props: DataTableProps<T>) {
                   <TableHead
                     key={`header-${index}`}
                     className={cn(
-                      column.isSortable !== false &&
-                        isSortable &&
-                        "cursor-pointer",
                       column.isPinned &&
                         "sticky left-0 z-10 bg-background shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]",
                       column.width && column.width,
+                      isSortable &&
+                        column.isSortable !== false &&
+                        "cursor-pointer",
                     )}
                     style={column.width ? { width: column.width } : undefined}
-                    onClick={() => {
-                      if (column.isSortable !== false && isSortable) {
-                        handleSort(column.accessorKey);
-                      }
-                    }}
+                    onClick={() =>
+                      isSortable &&
+                      column.isSortable !== false &&
+                      handleSort(column.accessorKey)
+                    }
                   >
-                    <div className="flex items-center justify-between w-full">
-                      <div className="flex items-center">
-                        {column.header}
-                        {column.isSortable !== false && isSortable && (
-                          <ArrowUpDown className="ml-2 h-4 w-4" />
-                        )}
-                        {sortColumn === column.accessorKey && (
-                          <span className="ml-1 text-xs">
-                            {sortDirection === "asc" ? "(A-Z)" : "(Z-A)"}
-                          </span>
-                        )}
-                      </div>
-                      {column.isFilterable && isFilterable && (
-                        <Popover>
-                          <PopoverTrigger
-                            asChild
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-6 w-6 p-0"
-                            >
-                              <Filter className="h-3 w-3 text-muted-foreground" />
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent
-                            className="w-80"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <div className="space-y-4">
-                              <h4 className="font-medium">
-                                Filter {column.header}
-                              </h4>
-                              <div className="space-y-2">
-                                <Input
-                                  placeholder={`Filter ${column.header}`}
-                                  value={
-                                    filters[column.accessorKey as string] || ""
-                                  }
-                                  onChange={(e) =>
-                                    handleFilterChange(
-                                      column.accessorKey,
-                                      e.target.value,
-                                    )
-                                  }
-                                  className="w-full"
-                                />
-                              </div>
-                            </div>
-                          </PopoverContent>
-                        </Popover>
+                    <div className="flex items-center justify-between">
+                      <span>{column.header}</span>
+                      {isSortable && column.isSortable !== false && (
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
                       )}
                     </div>
                   </TableHead>
                 ))}
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead className="w-[100px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
               <TableRow>
                 <TableCell
-                  colSpan={tableColumns.filter((col) => !col.hidden).length + 1}
-                  className="h-64 text-center"
+                  colSpan={tableColumns.filter((c) => !c.hidden).length + 1}
+                  className="h-24 text-center"
                 >
                   <div className="flex flex-col items-center justify-center">
-                    <div className="mb-4">
-                      <LottiePlayer
-                        src="https://assets9.lottiefiles.com/packages/lf20_x62chJ.json"
-                        background="transparent"
-                        speed={1}
-                        style={{ width: "100px", height: "100px" }}
-                        loop
-                        autoplay
-                      />
+                    <div className="relative h-8 w-8">
+                      <div className="absolute inset-0 animate-spin rounded-full border-2 border-primary border-t-transparent" />
                     </div>
-                    <p className="text-lg font-medium">{loadingText}</p>
+                    <p className="mt-2 text-sm text-muted-foreground">
+                      {loadingText}
+                    </p>
                   </div>
                 </TableCell>
               </TableRow>
-            ) : paginatedItems.length === 0 ? (
+            ) : paginatedItems.length === 0 && !isAdding ? (
               <TableRow>
                 <TableCell
-                  colSpan={tableColumns.filter((col) => !col.hidden).length + 1}
-                  className="h-64 text-center"
+                  colSpan={tableColumns.filter((c) => !c.hidden).length + 1}
+                  className="h-24 text-center"
                 >
-                  <div className="flex flex-col items-center justify-center">
-                    <div className="mb-4">
-                      <LottiePlayer
-                        src="https://assets10.lottiefiles.com/packages/lf20_wnqlfojb.json"
-                        background="transparent"
-                        speed={1}
-                        style={{ width: "100px", height: "100px" }}
-                        loop
-                        autoplay
-                      />
-                    </div>
-                    <p className="text-lg font-medium">{noDataText}</p>
-                  </div>
+                  <p className="text-muted-foreground">{noDataText}</p>
                 </TableCell>
               </TableRow>
             ) : (
@@ -1264,10 +1477,7 @@ function DataTable<T extends { id: string }>(props: DataTableProps<T>) {
                 {paginatedItems.map((item) => (
                   <TableRow
                     key={item.id}
-                    className={cn(
-                      editingId === item.id && "bg-muted/50",
-                      "relative",
-                    )}
+                    className={editingId === item.id ? "bg-muted/50" : ""}
                   >
                     {tableColumns
                       .filter((column) => !column.hidden)
@@ -1277,6 +1487,9 @@ function DataTable<T extends { id: string }>(props: DataTableProps<T>) {
                           className={cn(
                             column.isPinned &&
                               "sticky left-0 z-10 bg-background shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]",
+                            editingId === item.id &&
+                              column.isPinned &&
+                              "bg-muted/50",
                             column.width && column.width,
                           )}
                           style={
@@ -1292,7 +1505,11 @@ function DataTable<T extends { id: string }>(props: DataTableProps<T>) {
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={handleSave}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleSave();
+                            }}
                             className="mr-2 h-8 w-8 text-green-600"
                             title={`Save (${SHORTCUTS.SAVE})`}
                           >
@@ -1301,7 +1518,11 @@ function DataTable<T extends { id: string }>(props: DataTableProps<T>) {
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={handleCancel}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleCancel();
+                            }}
                             className="h-8 w-8 text-red-600"
                             title={`Cancel (${SHORTCUTS.CANCEL})`}
                           >
@@ -1313,8 +1534,12 @@ function DataTable<T extends { id: string }>(props: DataTableProps<T>) {
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => handleEdit(item)}
-                            className="mr-2 h-8 w-8 text-blue-600"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleEdit(item);
+                            }}
+                            className="mr-2 h-8 w-8"
                             title={`Edit (${SHORTCUTS.EDIT})`}
                           >
                             <Pencil className="h-4 w-4" />
@@ -1322,7 +1547,11 @@ function DataTable<T extends { id: string }>(props: DataTableProps<T>) {
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => handleDeleteClick(item.id)}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleDeleteClick(item.id);
+                            }}
                             className="h-8 w-8 text-red-600"
                             title={`Delete (${SHORTCUTS.DELETE})`}
                           >
@@ -1341,7 +1570,7 @@ function DataTable<T extends { id: string }>(props: DataTableProps<T>) {
       </div>
 
       {isPaginated && totalPages > 1 && (
-        <Pagination>
+        <Pagination className="mt-4">
           <PaginationContent>
             <PaginationItem>
               <PaginationPrevious
@@ -1350,8 +1579,8 @@ function DataTable<T extends { id: string }>(props: DataTableProps<T>) {
               />
             </PaginationItem>
 
-            {getPageNumbers().map((page, index) => (
-              <PaginationItem key={`page-${index}`}>
+            {getPageNumbers().map((page, i) => (
+              <PaginationItem key={`page-${i}`}>
                 {page === "ellipsis1" || page === "ellipsis2" ? (
                   <PaginationEllipsis />
                 ) : (
@@ -1380,5 +1609,4 @@ function DataTable<T extends { id: string }>(props: DataTableProps<T>) {
   );
 }
 
-export { DataTable };
 export default DataTable;

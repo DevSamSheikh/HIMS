@@ -20,6 +20,14 @@ import ItemManagement from "./components/pharmacy/ItemManagement";
 import routes from "tempo-routes";
 import CustomerManagement from "./components/pharmacy/CustomerManagement";
 import InventoryManagement from "./components/pharmacy/InventoryManagement";
+import PurchaseLayout from "./components/pharmacy/purchase/PurchaseLayout";
+import PurchaseOrderList from "./components/pharmacy/purchase/PurchaseOrderList";
+import PurchaseOrderForm from "./components/pharmacy/purchase/PurchaseOrderForm";
+import PurchaseInvoiceList from "./components/pharmacy/purchase/PurchaseInvoiceList";
+import PurchaseInvoiceForm from "./components/pharmacy/purchase/PurchaseInvoiceForm";
+import PurchaseReturnList from "./components/pharmacy/purchase/PurchaseReturnList";
+import PurchaseReturnForm from "./components/pharmacy/purchase/PurchaseReturnForm";
+import PurchaseReportList from "./components/pharmacy/purchase/PurchaseReportList";
 
 // Lazy load dashboard components
 const AdminDashboard = lazy(
@@ -92,6 +100,25 @@ function App() {
               <Route path="items" element={<ItemManagement />} />
               <Route path="customers" element={<CustomerManagement />} />
               <Route path="inventory" element={<InventoryManagement />} />
+              <Route path="purchase" element={<PurchaseLayout />}>
+                <Route index element={<Navigate to="orders" replace />} />
+                <Route path="orders" element={<PurchaseOrderList />} />
+                <Route path="orders/new" element={<PurchaseOrderForm />} />
+                <Route path="orders/edit/:id" element={<PurchaseOrderForm />} />
+                <Route path="invoices" element={<PurchaseInvoiceList />} />
+                <Route path="invoices/new" element={<PurchaseInvoiceForm />} />
+                <Route
+                  path="invoices/edit/:id"
+                  element={<PurchaseInvoiceForm />}
+                />
+                <Route path="returns" element={<PurchaseReturnList />} />
+                <Route path="returns/new" element={<PurchaseReturnForm />} />
+                <Route
+                  path="returns/edit/:id"
+                  element={<PurchaseReturnForm />}
+                />
+                <Route path="reports" element={<PurchaseReportList />} />
+              </Route>
               <Route
                 path="prescriptions"
                 element={<div className="p-6">Prescriptions coming soon</div>}

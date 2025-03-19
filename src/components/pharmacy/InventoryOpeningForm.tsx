@@ -383,10 +383,8 @@ const InventoryOpeningForm: React.FC<InventoryOpeningFormProps> = ({
     // Log for debugging
     console.log("Sanitized items:", sanitizedItems);
 
-    // Use setTimeout to ensure state updates properly
-    setTimeout(() => {
-      setInventoryItems([...sanitizedItems]);
-    }, 0);
+    // Update state directly without setTimeout to prevent duplicate rows
+    setInventoryItems(sanitizedItems);
   };
 
   // Update item rates and value based on isPack selection
@@ -988,9 +986,10 @@ const InventoryOpeningForm: React.FC<InventoryOpeningFormProps> = ({
               isSearchable={false}
               addButtonText="Add Item"
               keyboardShortcuts={true}
-              addStartEntry={true}
+              addStartEntry={false}
               noDataText="No inventory items added yet"
               enableColumnConfiguration={true}
+              disableSaveAnimation={true}
               defaultPinnedColumns={[
                 "isPack",
                 "itemName",

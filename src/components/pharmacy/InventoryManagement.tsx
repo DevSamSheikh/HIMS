@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import InventoryOpeningTable from "./InventoryOpeningTable";
+import InventoryAdjustmentTable from "./InventoryAdjustmentTable";
+import InventoryTransferTable from "./InventoryTransferTable";
 
 const InventoryManagement: React.FC = () => {
   const [activeTab, setActiveTab] = useState("openings");
@@ -26,21 +28,11 @@ const InventoryManagement: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="adjustments" className="mt-6">
-          <Card className="p-6">
-            <p className="text-muted-foreground">
-              Inventory Adjustments functionality will be implemented in the
-              next phase.
-            </p>
-          </Card>
+          <InventoryAdjustmentTable />
         </TabsContent>
 
         <TabsContent value="transfers" className="mt-6">
-          <Card className="p-6">
-            <p className="text-muted-foreground">
-              Inventory Transfers functionality will be implemented in the next
-              phase.
-            </p>
-          </Card>
+          <InventoryTransferTable />
         </TabsContent>
       </Tabs>
     </div>
