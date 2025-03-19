@@ -28,6 +28,12 @@ import PurchaseInvoiceForm from "./components/pharmacy/purchase/PurchaseInvoiceF
 import PurchaseReturnList from "./components/pharmacy/purchase/PurchaseReturnList";
 import PurchaseReturnForm from "./components/pharmacy/purchase/PurchaseReturnForm";
 import PurchaseReportList from "./components/pharmacy/purchase/PurchaseReportList";
+import SalesLayout from "./components/pharmacy/sales/SalesLayout";
+import SaleInvoiceList from "./components/pharmacy/sales/SaleInvoiceList";
+import SaleInvoiceForm from "./components/pharmacy/sales/SaleInvoiceForm";
+import SaleReturnList from "./components/pharmacy/sales/SaleReturnList";
+import SaleReturnForm from "./components/pharmacy/sales/SaleReturnForm";
+import SalesReportList from "./components/pharmacy/sales/SalesReportList";
 
 // Lazy load dashboard components
 const AdminDashboard = lazy(
@@ -123,10 +129,16 @@ function App() {
                 path="prescriptions"
                 element={<div className="p-6">Prescriptions coming soon</div>}
               />
-              <Route
-                path="sales"
-                element={<div className="p-6">Sales coming soon</div>}
-              />
+              <Route path="sales" element={<SalesLayout />}>
+                <Route index element={<Navigate to="invoices" replace />} />
+                <Route path="invoices" element={<SaleInvoiceList />} />
+                <Route path="invoices/new" element={<SaleInvoiceForm />} />
+                <Route path="invoices/edit/:id" element={<SaleInvoiceForm />} />
+                <Route path="returns" element={<SaleReturnList />} />
+                <Route path="returns/new" element={<SaleReturnForm />} />
+                <Route path="returns/edit/:id" element={<SaleReturnForm />} />
+                <Route path="reports" element={<SalesReportList />} />
+              </Route>
             </Route>
 
             {/* Catch-all route */}
