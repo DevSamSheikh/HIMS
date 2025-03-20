@@ -10,9 +10,11 @@ import {
   Users,
   BedDouble,
   ClipboardList,
+  BarChart,
 } from "lucide-react";
 import PatientList from "./PatientList";
 import PatientRegistration from "./PatientRegistration";
+import PatientReports from "./PatientReports";
 import IPDManagement from "./ipd/IPDManagement";
 import OPDManagement from "./opd/OPDManagement";
 
@@ -44,7 +46,7 @@ const PatientManagement = () => {
         className="space-y-4"
       >
         <div className="flex justify-between items-center">
-          <TabsList className="grid grid-cols-4 w-[600px]">
+          <TabsList className="grid grid-cols-5 w-[750px]">
             <TabsTrigger value="patients" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
               <span>All Patients</span>
@@ -58,8 +60,12 @@ const PatientManagement = () => {
               <span>IPD Management</span>
             </TabsTrigger>
             <TabsTrigger value="reports" className="flex items-center gap-2">
-              <FileText className="h-4 w-4" />
+              <BarChart className="h-4 w-4" />
               <span>Reports</span>
+            </TabsTrigger>
+            <TabsTrigger value="documents" className="flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              <span>Documents</span>
             </TabsTrigger>
           </TabsList>
 
@@ -87,10 +93,14 @@ const PatientManagement = () => {
         </TabsContent>
 
         <TabsContent value="reports" className="space-y-4">
+          <PatientReports searchQuery={searchQuery} />
+        </TabsContent>
+
+        <TabsContent value="documents" className="space-y-4">
           <div className="p-4 border rounded-md">
-            <h2 className="text-xl font-semibold mb-4">Patient Reports</h2>
+            <h2 className="text-xl font-semibold mb-4">Patient Documents</h2>
             <p className="text-muted-foreground">
-              Reports module coming soon...
+              Documents module coming soon...
             </p>
           </div>
         </TabsContent>

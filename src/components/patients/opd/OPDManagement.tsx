@@ -8,6 +8,8 @@ import OPDVisitList from "./OPDVisitList";
 import OPDQueue from "./OPDQueue";
 import OPDAppointments from "./OPDAppointments";
 import NewOPDVisit from "./NewOPDVisit";
+import { toast } from "@/components/ui/use-toast";
+import { OPDVisit } from "../types";
 
 interface OPDManagementProps {
   searchQuery: string;
@@ -17,6 +19,15 @@ const OPDManagement: React.FC<OPDManagementProps> = ({ searchQuery }) => {
   const [activeTab, setActiveTab] = useState<string>("visits");
   const [isNewVisitOpen, setIsNewVisitOpen] = useState<boolean>(false);
   const [localSearchQuery, setLocalSearchQuery] = useState<string>(searchQuery);
+
+  const handleNewVisitSuccess = (newVisit: OPDVisit) => {
+    setIsNewVisitOpen(false);
+    toast({
+      title: "OPD Visit Created",
+      description: `New OPD visit created for ${newVisit.patientName}`,
+    });
+    // In a real app, you would refresh the visit list here
+  };
 
   return (
     <div className="space-y-4">
@@ -64,7 +75,9 @@ const OPDManagement: React.FC<OPDManagementProps> = ({ searchQuery }) => {
         </div>
 
         <TabsContent value="visits" className="space-y-4">
-          <OPDVisitList searchQuery={localSearchQuery} />
+          <Card className="bg-white dark:bg-gray-950">
+            <OPDVisitList searchQuery={localSearchQuery} />
+          </Card>
         </TabsContent>
 
         <TabsContent value="queue" className="space-y-4">
@@ -80,10 +93,7 @@ const OPDManagement: React.FC<OPDManagementProps> = ({ searchQuery }) => {
         <NewOPDVisit
           isOpen={isNewVisitOpen}
           onClose={() => setIsNewVisitOpen(false)}
-          onSuccess={() => {
-            setIsNewVisitOpen(false);
-            // Refresh OPD visit list
-          }}
+          onSuccess={handleNewVisitSuccess}
         />
       )}
     </div>

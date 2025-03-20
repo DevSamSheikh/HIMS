@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -21,6 +21,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Patient } from "./types";
+import {
+  generateMRNumber,
+  getLastMRNumber,
+  saveLastMRNumber,
+  getMRConfig,
+} from "@/utils/mrNumberGenerator";
+import { generateTokenNumber } from "@/utils/tokenGenerator";
+import MRNumberSettings, {
+  MRNumberConfig,
+} from "@/components/settings/MRNumberSettings";
+import TokenPrintModal from "./TokenPrintModal";
 
 interface PatientRegistrationProps {
   isOpen: boolean;
@@ -36,6 +47,7 @@ const PatientRegistration: React.FC<PatientRegistrationProps> = ({
   const [formData, setFormData] = useState<Partial<Patient>>({
     name: "",
     age: 0,
+    ageUnit: "Years",
     gender: "",
     contact: "",
     address: "",
@@ -51,6 +63,20 @@ const PatientRegistration: React.FC<PatientRegistrationProps> = ({
 
   const [step, setStep] = useState<number>(1);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [mrNumberSettingsOpen, setMRNumberSettingsOpen] =
+    useState<boolean>(false);
+  const [mrConfig, setMRConfig] = useState<MRNumberConfig>(getMRConfig());
+  const [generatedMRNumber, setGeneratedMRNumber] = useState<string>("");
+  const [tokenPrintModalOpen, setTokenPrintModalOpen] =
+    useState<boolean>(false);
+  const [tokenData, setTokenData] = useState<any>(null);
+
+  // Generate MR number when component mounts
+  useEffect(() => {
+    const lastNumber = getLastMRNumber();
+    const mrNumber = generateMRNumber(lastNumber);
+    setGeneratedMRNumber(mrNumber);
+  }, []);
 
   const validateStep1 = () => {
     const newErrors: Record<string, string> = {};
@@ -79,16 +105,22 @@ const PatientRegistration: React.FC<PatientRegistrationProps> = ({
   };
 
   const handleSubmit = () => {
-    // Generate MR Number
-    const year = new Date().getFullYear();
-    const randomNum = Math.floor(1000 + Math.random() * 9000);
-    const mrNumber = `MR-${year}-${randomNum}`;
+    // Use the generated MR Number
+    const mrNumber = generatedMRNumber;
+
+    // Generate token number
+    const tokenNumber = generateTokenNumber();
+
+    // Update the last MR number counter
+    const lastNumber = getLastMRNumber();
+    saveLastMRNumber(lastNumber + 1);
 
     const newPatient: Patient = {
       id: Date.now().toString(),
       mrNumber,
       name: formData.name || "",
       age: formData.age || 0,
+      ageUnit: formData.ageUnit || "Years",
       gender: formData.gender || "",
       contact: formData.contact || "",
       address: formData.address || "",
@@ -107,9 +139,23 @@ const PatientRegistration: React.FC<PatientRegistrationProps> = ({
       allergies: formData.allergies,
       chronicDiseases: formData.chronicDiseases,
       notes: formData.notes,
+      tokenNumber: tokenNumber,
     };
 
+    // Prepare token data for printing
+    const now = new Date();
+    setTokenData({
+      tokenNumber: tokenNumber,
+      patientName: newPatient.name,
+      mrNumber: newPatient.mrNumber,
+      date: now.toLocaleDateString(),
+      time: now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+    });
+
     onSuccess(newPatient);
+
+    // Show token print modal
+    setTokenPrintModalOpen(true);
   };
 
   const handlePatientTypeChange = (type: "OPD" | "IPD") => {
@@ -132,13 +178,47 @@ const PatientRegistration: React.FC<PatientRegistrationProps> = ({
       <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Patient Registration</DialogTitle>
-          <DialogDescription>
-            Register a new patient and generate a unique MR number.
+          <DialogDescription className="flex justify-between items-center">
+            <span>Register a new patient and generate a unique MR number.</span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setMRNumberSettingsOpen(true)}
+            >
+              MR# Settings
+            </Button>
           </DialogDescription>
         </DialogHeader>
 
         {step === 1 ? (
           <div className="grid gap-4 py-4">
+            <div className="mb-4 p-3 bg-muted/50 rounded-md">
+              <div className="flex justify-between items-center">
+                <div>
+                  <Label className="text-sm text-muted-foreground">
+                    MR Number
+                  </Label>
+                  <p className="font-medium">{generatedMRNumber}</p>
+                </div>
+                <div>
+                  <Label className="text-sm text-muted-foreground">
+                    Registration Date
+                  </Label>
+                  <p className="font-medium">
+                    {new Date().toLocaleDateString()}
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-sm text-muted-foreground">
+                    Token Number
+                  </Label>
+                  <p className="font-medium">
+                    Will be generated on registration
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label
@@ -181,15 +261,39 @@ const PatientRegistration: React.FC<PatientRegistrationProps> = ({
                 >
                   Age <span className="text-destructive">*</span>
                 </Label>
-                <Input
-                  id="age"
-                  type="number"
-                  value={formData.age || ""}
-                  onChange={(e) =>
-                    setFormData({ ...formData, age: parseInt(e.target.value) })
-                  }
-                  className={errors.age ? "border-destructive" : ""}
-                />
+                <div className="flex space-x-2">
+                  <div className="flex-1">
+                    <Input
+                      id="age"
+                      type="number"
+                      value={formData.age || ""}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          age: parseInt(e.target.value),
+                        })
+                      }
+                      className={errors.age ? "border-destructive" : ""}
+                    />
+                  </div>
+                  <Select
+                    value={formData.ageUnit}
+                    onValueChange={(value) =>
+                      setFormData({
+                        ...formData,
+                        ageUnit: value as "Years" | "Months",
+                      })
+                    }
+                  >
+                    <SelectTrigger className="w-[110px]">
+                      <SelectValue placeholder="Years" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Years">Years</SelectItem>
+                      <SelectItem value="Months">Months</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
                 {errors.age && (
                   <p className="text-xs text-destructive">{errors.age}</p>
                 )}
@@ -507,6 +611,36 @@ const PatientRegistration: React.FC<PatientRegistrationProps> = ({
           )}
         </DialogFooter>
       </DialogContent>
+
+      {/* MR Number Settings Modal */}
+      {mrNumberSettingsOpen && (
+        <MRNumberSettings
+          isOpen={mrNumberSettingsOpen}
+          onClose={() => setMRNumberSettingsOpen(false)}
+          onSave={(newConfig) => {
+            // Save the new configuration
+            setMRConfig(newConfig);
+            localStorage.setItem("mrNumberConfig", JSON.stringify(newConfig));
+
+            // Regenerate MR number with new config
+            const lastNumber = getLastMRNumber();
+            const mrNumber = generateMRNumber(lastNumber);
+            setGeneratedMRNumber(mrNumber);
+
+            setMRNumberSettingsOpen(false);
+          }}
+          currentSettings={mrConfig}
+        />
+      )}
+
+      {/* Token Print Modal */}
+      {tokenPrintModalOpen && tokenData && (
+        <TokenPrintModal
+          isOpen={tokenPrintModalOpen}
+          onClose={() => setTokenPrintModalOpen(false)}
+          tokenData={tokenData}
+        />
+      )}
     </Dialog>
   );
 };

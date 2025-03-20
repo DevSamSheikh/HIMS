@@ -1,0 +1,84 @@
+@media print {
+  /* Hide elements that shouldn't be printed */
+  .print\:hidden {
+    display: none !important;
+  }
+
+  /* Show elements that should only appear when printing */
+  .hidden.print\:block {
+    display: block !important;
+  }
+
+  /* Ensure white background for printing */
+  body {
+    background-color: white !important;
+    color: black !important;
+  }
+
+  /* Remove shadows and borders for cleaner print */
+  .print\:shadow-none {
+    box-shadow: none !important;
+  }
+
+  .print\:border-none {
+    border: none !important;
+  }
+
+  /* Ensure text is black for better printing */
+  .print\:text-black {
+    color: black !important;
+  }
+
+  .print\:text-gray-600 {
+    color: #4b5563 !important;
+  }
+
+  /* Ensure backgrounds are appropriate for printing */
+  .print\:bg-white {
+    background-color: white !important;
+  }
+
+  .print\:bg-gray-50 {
+    background-color: #f9fafb !important;
+  }
+
+  /* Badge colors for printing */
+  .print\:bg-green-100 {
+    background-color: #d1fae5 !important;
+  }
+
+  .print\:text-green-800 {
+    color: #065f46 !important;
+  }
+
+  .print\:bg-amber-100 {
+    background-color: #fef3c7 !important;
+  }
+
+  .print\:text-amber-800 {
+    color: #92400e !important;
+  }
+
+  /* Adjust page margins */
+  @page {
+    margin: 1cm;
+  }
+
+  /* Ensure tables break properly across pages */
+  table {
+    page-break-inside: auto;
+  }
+
+  tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+
+  thead {
+    display: table-header-group;
+  }
+
+  tfoot {
+    display: table-footer-group;
+  }
+}

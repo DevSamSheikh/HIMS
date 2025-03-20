@@ -3,6 +3,7 @@ export interface Patient {
   mrNumber: string;
   name: string;
   age: number;
+  ageUnit: "Years" | "Months";
   gender: string;
   contact: string;
   address: string;
@@ -21,6 +22,7 @@ export interface Patient {
   allergies?: string[];
   chronicDiseases?: string[];
   notes?: string;
+  tokenNumber?: string;
 }
 
 export interface OPDVisit {
@@ -50,6 +52,7 @@ export interface OPDVisit {
     weight?: number;
   };
   notes?: string;
+  tokenNumber?: string;
 }
 
 export interface IPDAdmission {

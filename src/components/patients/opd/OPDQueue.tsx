@@ -11,7 +11,22 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { OPDVisit } from "../types";
-import { Clock, ArrowRight, CheckCircle2, AlertCircle } from "lucide-react";
+import {
+  Clock,
+  ArrowRight,
+  CheckCircle2,
+  AlertCircle,
+  MoreHorizontal,
+} from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { toast } from "@/components/ui/use-toast";
 
 interface OPDQueueProps {
   searchQuery: string;
@@ -117,6 +132,8 @@ const OPDQueue: React.FC<OPDQueueProps> = ({ searchQuery }) => {
 
   // Filter queue items based on search query
   const filteredQueue = queueItems.filter((item) => {
+    if (!searchQuery) return true;
+
     const searchLower = searchQuery.toLowerCase();
     return (
       item.patientName.toLowerCase().includes(searchLower) ||
@@ -172,6 +189,20 @@ const OPDQueue: React.FC<OPDQueueProps> = ({ searchQuery }) => {
         item.id === id ? { ...item, status: newStatus } : item,
       ),
     );
+
+    // Show toast notification
+    const statusMessages = {
+      Waiting: "Patient has been moved to waiting.",
+      "In Consultation": "Patient has been moved to consultation.",
+      Completed: "Patient consultation has been completed.",
+      Cancelled: "Patient visit has been cancelled.",
+    };
+
+    toast({
+      title: `Status Updated: ${newStatus}`,
+      description: statusMessages[newStatus],
+      variant: newStatus === "Cancelled" ? "destructive" : "default",
+    });
   };
 
   return (
@@ -319,37 +350,48 @@ const OPDQueue: React.FC<OPDQueueProps> = ({ searchQuery }) => {
                       )}
                     </TableCell>
                     <TableCell className="text-right">
-                      {patient.status === "Waiting" && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="text-blue-600 border-blue-200 hover:bg-blue-50"
-                          onClick={() =>
-                            updateStatus(patient.id, "In Consultation")
-                          }
-                        >
-                          Start Consultation
-                        </Button>
-                      )}
-                      {patient.status === "In Consultation" && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="text-green-600 border-green-200 hover:bg-green-50"
-                          onClick={() => updateStatus(patient.id, "Completed")}
-                        >
-                          Complete
-                        </Button>
-                      )}
-                      {patient.status === "Completed" && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="text-gray-600 border-gray-200 hover:bg-gray-50"
-                        >
-                          View Details
-                        </Button>
-                      )}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Open menu</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          {patient.status === "Waiting" && (
+                            <DropdownMenuItem
+                              onClick={() =>
+                                updateStatus(patient.id, "In Consultation")
+                              }
+                            >
+                              Start Consultation
+                            </DropdownMenuItem>
+                          )}
+                          {patient.status === "In Consultation" && (
+                            <DropdownMenuItem
+                              onClick={() =>
+                                updateStatus(patient.id, "Completed")
+                              }
+                            >
+                              Complete
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuItem>View Details</DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          {(patient.status === "Waiting" ||
+                            patient.status === "In Consultation") && (
+                            <DropdownMenuItem
+                              className="text-destructive"
+                              onClick={() =>
+                                updateStatus(patient.id, "Cancelled")
+                              }
+                            >
+                              Cancel Visit
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))}

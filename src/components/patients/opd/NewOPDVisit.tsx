@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { generateTokenNumber } from "@/utils/tokenGenerator";
+import TokenPrintModal from "../TokenPrintModal";
 import {
   Dialog,
   DialogContent,
@@ -23,6 +25,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Patient, OPDVisit, Doctor } from "../types";
 import { Search, UserPlus } from "lucide-react";
+import { toast } from "@/components/ui/use-toast";
 
 interface NewOPDVisitProps {
   isOpen: boolean;
@@ -57,6 +60,9 @@ const NewOPDVisit: React.FC<NewOPDVisitProps> = ({
     "Paid" | "Pending" | "Waived"
   >("Pending");
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [tokenPrintModalOpen, setTokenPrintModalOpen] =
+    useState<boolean>(false);
+  const [tokenData, setTokenData] = useState<any>(null);
 
   // Sample patients data
   const patients: Patient[] = [
@@ -225,13 +231,19 @@ const NewOPDVisit: React.FC<NewOPDVisitProps> = ({
       return;
     }
 
+    // Generate token number
+    const tokenNumber = generateTokenNumber();
+
     // Create new OPD visit object
     const newVisit: OPDVisit = {
       id: `OPD-${Date.now()}`,
       patientId: selectedPatient?.id || patientId || "",
       patientName: selectedPatient?.name || "",
+      mrNumber: selectedPatient?.mrNumber || "",
       doctorId: selectedDoctor,
       doctorName: doctors.find((d) => d.id === selectedDoctor)?.name || "",
+      department:
+        doctors.find((d) => d.id === selectedDoctor)?.department || "",
       visitDate: new Date().toISOString(),
       visitType,
       chiefComplaint,
@@ -239,10 +251,27 @@ const NewOPDVisit: React.FC<NewOPDVisitProps> = ({
       fee,
       paymentStatus,
       status: "Waiting",
+      tokenNumber: tokenNumber,
     };
 
+    // Prepare token data for printing
+    const now = new Date();
+    const selectedDoc = doctors.find((d) => d.id === selectedDoctor);
+
+    setTokenData({
+      tokenNumber: tokenNumber,
+      patientName: selectedPatient?.name || "",
+      mrNumber: selectedPatient?.mrNumber || "",
+      department: selectedDoc?.department || "",
+      doctorName: selectedDoc?.name || "",
+      date: now.toLocaleDateString(),
+      time: now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+    });
+
     onSuccess(newVisit);
-    onClose();
+
+    // Show token print modal
+    setTokenPrintModalOpen(true);
   };
 
   // Filter patients based on search query
@@ -626,6 +655,18 @@ const NewOPDVisit: React.FC<NewOPDVisitProps> = ({
           <Button onClick={handleSubmit}>Save Visit</Button>
         </DialogFooter>
       </DialogContent>
+
+      {/* Token Print Modal */}
+      {tokenPrintModalOpen && tokenData && (
+        <TokenPrintModal
+          isOpen={tokenPrintModalOpen}
+          onClose={() => {
+            setTokenPrintModalOpen(false);
+            onClose();
+          }}
+          tokenData={tokenData}
+        />
+      )}
     </Dialog>
   );
 };
