@@ -64,6 +64,8 @@ import {
   Truck,
   Clock,
   CheckCircle,
+  Edit,
+  Sliders,
 } from "lucide-react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 
@@ -133,6 +135,7 @@ const NavItem = ({
       "User Management": <UserCog size={16} />,
       Roles: <Lock size={16} />,
       Permissions: <ShieldCheck size={16} />,
+      "Control Panel": <Sliders size={16} />,
 
       // Patient Management
       Registration: <UserPlus size={16} />,
@@ -491,6 +494,11 @@ const Sidebar = ({
           label: "Permissions",
           href: "/security/permissions",
         },
+        {
+          id: "control-panel",
+          label: "Control Panel",
+          href: "/security/control-panel",
+        },
       ],
     },
     {
@@ -505,6 +513,7 @@ const Sidebar = ({
         },
         { id: "search", label: "Search", href: "/patients/search" },
         { id: "records", label: "Records", href: "/patients/records" },
+        { id: "management", label: "Management", href: "/patients/management" },
       ],
     },
     {
@@ -513,14 +522,24 @@ const Sidebar = ({
       icon: <Stethoscope size={20} />,
       subItems: [
         {
-          id: "appointments",
-          label: "Appointments",
-          href: "/opd/appointments",
+          id: "management",
+          label: "Management",
+          href: "/patients/opd",
         },
         {
-          id: "consultations",
-          label: "Consultations",
-          href: "/opd/consultations",
+          id: "appointments",
+          label: "Appointments",
+          href: "/patients/opd/appointments",
+        },
+        {
+          id: "visits",
+          label: "Visits",
+          href: "/patients/opd/visits",
+        },
+        {
+          id: "queue",
+          label: "Today's Queue",
+          href: "/patients/opd/queue",
         },
         { id: "billing", label: "Billing", href: "/opd/billing" },
       ],

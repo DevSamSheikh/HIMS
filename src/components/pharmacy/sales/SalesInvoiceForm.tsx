@@ -30,12 +30,23 @@ interface Item {
   category: string;
   unitPrice: number;
   availableQty: number;
+  batches?: Batch[];
+}
+
+interface Batch {
+  id: string;
+  batchNo: string;
+  expiryDate: string;
+  availableQty: number;
 }
 
 interface InvoiceItem {
   id: string;
   itemId: string;
   itemName: string;
+  batchId: string;
+  batchNo: string;
+  batchQty: number;
   quantity: number;
   unitPrice: number;
   discount: number;
@@ -82,6 +93,20 @@ const SalesInvoiceForm: React.FC = () => {
       category: "Analgesics",
       unitPrice: 5.99,
       availableQty: 500,
+      batches: [
+        {
+          id: "batch-001-1",
+          batchNo: "B001",
+          expiryDate: "2024-12-31",
+          availableQty: 300,
+        },
+        {
+          id: "batch-001-2",
+          batchNo: "B002",
+          expiryDate: "2025-06-30",
+          availableQty: 200,
+        },
+      ],
     },
     {
       id: "item-002",
@@ -90,6 +115,20 @@ const SalesInvoiceForm: React.FC = () => {
       category: "Antibiotics",
       unitPrice: 12.5,
       availableQty: 300,
+      batches: [
+        {
+          id: "batch-002-1",
+          batchNo: "B101",
+          expiryDate: "2024-10-15",
+          availableQty: 150,
+        },
+        {
+          id: "batch-002-2",
+          batchNo: "B102",
+          expiryDate: "2025-02-28",
+          availableQty: 150,
+        },
+      ],
     },
     {
       id: "item-003",
@@ -98,6 +137,20 @@ const SalesInvoiceForm: React.FC = () => {
       category: "Vitamins",
       unitPrice: 8.75,
       availableQty: 200,
+      batches: [
+        {
+          id: "batch-003-1",
+          batchNo: "B201",
+          expiryDate: "2024-11-30",
+          availableQty: 100,
+        },
+        {
+          id: "batch-003-2",
+          batchNo: "B202",
+          expiryDate: "2025-04-15",
+          availableQty: 100,
+        },
+      ],
     },
     {
       id: "item-004",
@@ -106,6 +159,20 @@ const SalesInvoiceForm: React.FC = () => {
       category: "Analgesics",
       unitPrice: 7.25,
       availableQty: 400,
+      batches: [
+        {
+          id: "batch-004-1",
+          batchNo: "B301",
+          expiryDate: "2024-09-30",
+          availableQty: 200,
+        },
+        {
+          id: "batch-004-2",
+          batchNo: "B302",
+          expiryDate: "2025-01-15",
+          availableQty: 200,
+        },
+      ],
     },
     {
       id: "item-005",
@@ -114,6 +181,20 @@ const SalesInvoiceForm: React.FC = () => {
       category: "Antihistamines",
       unitPrice: 9.99,
       availableQty: 250,
+      batches: [
+        {
+          id: "batch-005-1",
+          batchNo: "B401",
+          expiryDate: "2024-08-31",
+          availableQty: 125,
+        },
+        {
+          id: "batch-005-2",
+          batchNo: "B402",
+          expiryDate: "2025-03-15",
+          availableQty: 125,
+        },
+      ],
     },
   ]);
 
@@ -138,6 +219,9 @@ const SalesInvoiceForm: React.FC = () => {
   });
 
   const [selectedItem, setSelectedItem] = useState<string>("");
+  const [selectedBatch, setSelectedBatch] = useState<string>("");
+  const [availableBatches, setAvailableBatches] = useState<Batch[]>([]);
+  const [selectedBatchQty, setSelectedBatchQty] = useState<number>(0);
 
   // Load invoice data if editing
   useEffect(() => {
@@ -223,16 +307,53 @@ const SalesInvoiceForm: React.FC = () => {
     }));
   };
 
+  // Update available batches when an item is selected
+  useEffect(() => {
+    if (selectedItem) {
+      const item = items.find((i) => i.id === selectedItem);
+      if (item && item.batches) {
+        setAvailableBatches(item.batches);
+      } else {
+        setAvailableBatches([]);
+      }
+      setSelectedBatch("");
+      setSelectedBatchQty(0);
+    } else {
+      setAvailableBatches([]);
+      setSelectedBatch("");
+      setSelectedBatchQty(0);
+    }
+  }, [selectedItem, items]);
+
+  // Update selected batch quantity when a batch is selected
+  useEffect(() => {
+    if (selectedBatch) {
+      const batch = availableBatches.find((b) => b.id === selectedBatch);
+      if (batch) {
+        setSelectedBatchQty(batch.availableQty);
+      } else {
+        setSelectedBatchQty(0);
+      }
+    } else {
+      setSelectedBatchQty(0);
+    }
+  }, [selectedBatch, availableBatches]);
+
   const handleAddItem = () => {
-    if (!selectedItem) return;
+    if (!selectedItem || !selectedBatch) return;
 
     const item = items.find((i) => i.id === selectedItem);
-    if (!item) return;
+    const batch = availableBatches.find((b) => b.id === selectedBatch);
+
+    if (!item || !batch) return;
 
     const newItem: InvoiceItem = {
       id: `line-${Date.now()}`,
       itemId: item.id,
       itemName: item.name,
+      batchId: batch.id,
+      batchNo: batch.batchNo,
+      batchQty: batch.availableQty,
       quantity: 1,
       unitPrice: item.unitPrice,
       discount: 0,
@@ -245,7 +366,10 @@ const SalesInvoiceForm: React.FC = () => {
       items: [...prev.items, newItem],
     }));
 
+    // Reset selections
     setSelectedItem("");
+    setSelectedBatch("");
+    setSelectedBatchQty(0);
   };
 
   const handleSaveInvoice = () => {
@@ -284,34 +408,124 @@ const SalesInvoiceForm: React.FC = () => {
   const columns: Column<InvoiceItem>[] = [
     {
       header: "Item",
-      accessorKey: "itemName",
-      width: "30%",
+      accessorKey: "itemId",
+      width: "20%",
+      cellType: "dropdown",
+      cell: (item) => {
+        return (
+          <SearchableSelect
+            label=""
+            options={items.map((i) => ({ id: i.id, name: i.name }))}
+            value={item.itemId || ""}
+            onValueChange={(value) => {
+              const selectedItem = items.find((i) => i.id === value);
+              if (selectedItem) {
+                const updatedItems = [...invoice.items];
+                const index = updatedItems.findIndex((i) => i.id === item.id);
+                if (index !== -1) {
+                  updatedItems[index] = {
+                    ...updatedItems[index],
+                    itemId: selectedItem.id,
+                    itemName: selectedItem.name,
+                    unitPrice: selectedItem.unitPrice,
+                    batchId: "",
+                    batchNo: "",
+                    batchQty: 0,
+                    tax: selectedItem.unitPrice * 0.05, // 5% tax for example
+                  };
+                  setInvoice((prev) => ({
+                    ...prev,
+                    items: updatedItems,
+                  }));
+                }
+              }
+            }}
+            placeholder="Select Item"
+            showSelectedLabel={true}
+            className="w-full"
+          />
+        );
+      },
     },
+    {
+      header: "Batch No",
+      accessorKey: "batchId",
+      width: "10%",
+      cellType: "dropdown",
+      cell: (item) => {
+        const selectedItem = items.find((i) => i.id === item.itemId);
+        const batches = selectedItem?.batches || [];
+
+        return (
+          <SearchableSelect
+            label=""
+            options={batches.map((batch) => ({
+              id: batch.id,
+              name: `${batch.batchNo} (Exp: ${batch.expiryDate})`,
+            }))}
+            value={item.batchId || ""}
+            onValueChange={(value) => {
+              const selectedBatch = batches.find((b) => b.id === value);
+              if (selectedBatch) {
+                const updatedItems = [...invoice.items];
+                const index = updatedItems.findIndex((i) => i.id === item.id);
+                if (index !== -1) {
+                  updatedItems[index] = {
+                    ...updatedItems[index],
+                    batchId: selectedBatch.id,
+                    batchNo: selectedBatch.batchNo,
+                    batchQty: selectedBatch.availableQty,
+                  };
+                  setInvoice((prev) => ({
+                    ...prev,
+                    items: updatedItems,
+                  }));
+                }
+              }
+            }}
+            placeholder="Select Batch"
+            showSelectedLabel={true}
+            className="w-full"
+            disabled={!item.itemId}
+          />
+        );
+      },
+    },
+    {
+      header: "Batch Qty",
+      accessorKey: "batchQty",
+      width: "10%",
+      cellType: "text",
+      cell: (item) => item.batchQty.toString(),
+      isReadOnly: true,
+    },
+
     {
       header: "Quantity",
       accessorKey: "quantity",
       cellType: "number",
-      width: "15%",
+      width: "10%",
       min: 1,
       required: true,
-      isValid: (value) => Number(value) > 0,
+      isValid: (value, row) =>
+        Number(value) > 0 && Number(value) <= row.batchQty,
     },
     {
       header: "Unit Price",
       accessorKey: "unitPrice",
       cellType: "number",
-      width: "15%",
+      width: "12%",
       min: 0,
       required: true,
-      cell: (item) => `$${item.unitPrice.toFixed(2)}`,
+      cell: (item) => `${item.unitPrice.toFixed(2)}`,
     },
     {
       header: "Discount",
       accessorKey: "discount",
       cellType: "number",
-      width: "15%",
+      width: "12%",
       min: 0,
-      cell: (item) => `$${item.discount.toFixed(2)}`,
+      cell: (item) => `${item.discount.toFixed(2)}`,
     },
     {
       header: "Tax",
@@ -319,31 +533,95 @@ const SalesInvoiceForm: React.FC = () => {
       cellType: "number",
       width: "10%",
       min: 0,
-      cell: (item) => `$${item.tax.toFixed(2)}`,
+      cell: (item) => `${item.tax.toFixed(2)}`,
     },
     {
       header: "Total",
       accessorKey: "total",
-      width: "15%",
-      cell: (item) => `$${item.total.toFixed(2)}`,
+      width: "16%",
+      cell: (item) => `${item.total.toFixed(2)}`,
     },
   ];
 
   const handleItemsChange = (updatedItems: InvoiceItem[]) => {
-    // Recalculate totals for each item
-    const recalculatedItems = updatedItems.map((item) => {
-      const subtotal = item.quantity * item.unitPrice;
-      const total = subtotal - item.discount + item.tax;
-      return {
-        ...item,
-        total,
-      };
+    // Process each item to ensure all required fields are populated
+    const processedItems = updatedItems.map((item) => {
+      // If item has an ID but is missing other values, ensure they're populated
+      if (item.itemId) {
+        const selectedItem = items.find((i) => i.id === item.itemId);
+        if (selectedItem) {
+          // If batch is selected, get batch details
+          let batchQty = item.batchQty;
+          let batchNo = item.batchNo;
+
+          if (item.batchId) {
+            const selectedBatch = getAvailableBatchesForItem(item.itemId).find(
+              (b) => b.id === item.batchId,
+            );
+            if (selectedBatch) {
+              batchQty = selectedBatch.availableQty;
+              batchNo = selectedBatch.batchNo;
+            }
+          }
+
+          // Calculate totals
+          const subtotal = item.quantity * item.unitPrice;
+          const total = subtotal - item.discount + item.tax;
+
+          // Validate quantity against batch quantity
+          let quantity = item.quantity;
+          if (item.batchId && quantity > batchQty) {
+            toast({
+              title: "Quantity Error",
+              description: `Quantity for ${item.itemName} exceeds available batch quantity of ${batchQty}`,
+              variant: "destructive",
+            });
+            // Reset to batch quantity or 1, whichever is smaller
+            quantity = Math.min(batchQty, 1);
+          }
+
+          return {
+            ...item,
+            itemName: selectedItem.name,
+            batchQty,
+            batchNo,
+            quantity,
+            unitPrice: item.unitPrice || selectedItem.unitPrice,
+            tax: (item.unitPrice || selectedItem.unitPrice) * 0.05, // 5% tax for example
+            total,
+          };
+        }
+      }
+
+      // If no changes needed or item not found, return as is
+      return item;
     });
 
     setInvoice((prev) => ({
       ...prev,
-      items: recalculatedItems,
+      items: processedItems,
     }));
+  };
+
+  // Function to create a new empty invoice item
+  const createEmptyInvoiceItem = (): InvoiceItem => ({
+    id: `line-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+    itemId: "",
+    itemName: "",
+    batchId: "",
+    batchNo: "",
+    batchQty: 0,
+    quantity: 1,
+    unitPrice: 0,
+    discount: 0,
+    tax: 0,
+    total: 0,
+  });
+
+  // Get available batches for a specific item
+  const getAvailableBatchesForItem = (itemId: string): Batch[] => {
+    const item = items.find((i) => i.id === itemId);
+    return item?.batches || [];
   };
 
   return (
@@ -433,15 +711,36 @@ const SalesInvoiceForm: React.FC = () => {
           <div className="flex justify-between items-center">
             <CardTitle>Invoice Items</CardTitle>
             <div className="flex items-center space-x-2">
-              <SearchableSelect
-                label=""
-                options={items.map((i) => ({ id: i.id, name: i.name }))}
-                value={selectedItem}
-                onValueChange={setSelectedItem}
-                placeholder="Select an item"
-                className="w-64"
-              />
-              <Button onClick={handleAddItem} disabled={!selectedItem}>
+              <div className="flex space-x-2">
+                <SearchableSelect
+                  label=""
+                  options={items.map((i) => ({ id: i.id, name: i.name }))}
+                  value={selectedItem}
+                  onValueChange={setSelectedItem}
+                  placeholder="Select an item"
+                  className="w-48"
+                />
+                <SearchableSelect
+                  label=""
+                  options={availableBatches.map((b) => ({
+                    id: b.id,
+                    name: `${b.batchNo} (Exp: ${b.expiryDate})`,
+                  }))}
+                  value={selectedBatch}
+                  onValueChange={setSelectedBatch}
+                  placeholder="Select batch"
+                  className="w-48"
+                  disabled={!selectedItem || availableBatches.length === 0}
+                />
+                <div className="flex items-center space-x-2 bg-muted px-3 py-2 rounded-md">
+                  <span className="text-sm font-medium">Available Qty:</span>
+                  <span className="text-sm font-bold">{selectedBatchQty}</span>
+                </div>
+              </div>
+              <Button
+                onClick={handleAddItem}
+                disabled={!selectedItem || !selectedBatch}
+              >
                 <Plus className="mr-2 h-4 w-4" />
                 Add Item
               </Button>
@@ -456,6 +755,12 @@ const SalesInvoiceForm: React.FC = () => {
             isSearchable={false}
             isPaginated={false}
             addButtonText="Add Item Manually"
+            onAddRow={() => {
+              setInvoice((prev) => ({
+                ...prev,
+                items: [...prev.items, createEmptyInvoiceItem()],
+              }));
+            }}
           />
         </CardContent>
       </Card>

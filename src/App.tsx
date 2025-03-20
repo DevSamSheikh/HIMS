@@ -1,5 +1,5 @@
 import React, { Suspense, lazy } from "react";
-import { useRoutes, Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import DashboardSkeleton from "./components/dashboard/DashboardSkeleton";
 import LoginForm from "./components/auth/LoginForm";
 import SignupForm from "./components/auth/SignupForm";
@@ -34,6 +34,16 @@ import SalesInvoiceForm from "./components/pharmacy/sales/SalesInvoiceForm";
 import SalesReturnList from "./components/pharmacy/sales/SalesReturnList";
 import SalesReturnForm from "./components/pharmacy/sales/SalesReturnForm";
 import SalesReportList from "./components/pharmacy/sales/SalesReportList";
+import SecurityLayout from "./components/security/SecurityLayout";
+import ControlPanel from "./components/security/ControlPanel";
+import UserManagement from "./components/users/UserManagement";
+import RoleManagement from "./components/roles/RoleManagement";
+import PatientManagement from "./components/patients/PatientManagement";
+import PatientRegistration from "./components/patients/PatientRegistration";
+import OPDManagement from "./components/patients/opd/OPDManagement";
+import OPDVisitList from "./components/patients/opd/OPDVisitList";
+import OPDQueue from "./components/patients/opd/OPDQueue";
+import OPDAppointments from "./components/patients/opd/OPDAppointments";
 
 // Lazy load dashboard components
 const AdminDashboard = lazy(
@@ -101,6 +111,25 @@ function App() {
               />
             </Route>
 
+            {/* Security routes */}
+            <Route path="/security" element={<SecurityLayout />}>
+              <Route index element={<Navigate to="users" replace />} />
+              <Route path="users" element={<UserManagement />} />
+              <Route path="roles" element={<RoleManagement />} />
+              <Route
+                path="permissions"
+                element={
+                  <div className="p-6">
+                    <h1 className="text-2xl font-bold mb-6">
+                      Permissions Management
+                    </h1>
+                    <div>Permissions coming soon</div>
+                  </div>
+                }
+              />
+              <Route path="control-panel" element={<ControlPanel />} />
+            </Route>
+
             {/* Pharmacy routes */}
             <Route path="/pharmacy">
               <Route path="items" element={<ItemManagement />} />
@@ -144,11 +173,33 @@ function App() {
               </Route>
             </Route>
 
+            {/* Patient Management routes */}
+            <Route path="/patients">
+              <Route path="management" element={<PatientManagement />} />
+              <Route path="registration" element={<PatientRegistration />} />
+              <Route path="opd">
+                <Route index element={<OPDManagement searchQuery="" />} />
+                <Route
+                  path="visits"
+                  element={<OPDVisitList searchQuery="" />}
+                />
+                <Route path="queue" element={<OPDQueue searchQuery="" />} />
+                <Route
+                  path="appointments"
+                  element={<OPDAppointments searchQuery="" />}
+                />
+              </Route>
+            </Route>
+
             {/* Catch-all route */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
+
+          {/* Tempo routes */}
+          {import.meta.env.VITE_TEMPO === "true" && (
+            <Route path="/tempobook/*" />
+          )}
         </Routes>
-        {import.meta.env.VITE_TEMPO === "true" && useRoutes(routes)}
       </>
     </Suspense>
   );
