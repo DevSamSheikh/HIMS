@@ -23,6 +23,7 @@ import {
   Printer,
   RefreshCw,
   Search,
+  File,
 } from "lucide-react";
 import {
   Popover,
@@ -46,6 +47,7 @@ import PatientVisitHistoryReport from "./reports/PatientVisitHistoryReport";
 import PatientBillingReport from "./reports/PatientBillingReport";
 import PatientAdmissionsReport from "./reports/PatientAdmissionsReport";
 import PatientLabReport from "./reports/PatientLabReport";
+import PatientDocumentReport from "./reports/PatientDocumentReport";
 
 interface DatePickerProps {
   selected?: Date | null;
@@ -746,6 +748,163 @@ const PatientReports: React.FC<PatientReportsProps> = ({
     },
   ];
 
+  const patientDocuments = [
+    {
+      id: "D10023",
+      patientId: "P10023",
+      patientName: "John Doe",
+      date: "2023-10-15",
+      documentType: "Medical Certificate",
+      fileName: "john_doe_med_cert.pdf",
+      uploadedBy: "Dr. Smith",
+      fileSize: "245 KB",
+      status: "Verified",
+    },
+    {
+      id: "D10024",
+      patientId: "P10023",
+      patientName: "John Doe",
+      date: "2023-10-15",
+      documentType: "Lab Results",
+      fileName: "john_doe_lipid_profile.pdf",
+      uploadedBy: "Dr. Smith",
+      fileSize: "1.2 MB",
+      status: "Verified",
+    },
+    {
+      id: "D10045",
+      patientId: "P10045",
+      patientName: "Jane Smith",
+      date: "2023-10-18",
+      documentType: "X-Ray Image",
+      fileName: "jane_smith_xray.jpg",
+      uploadedBy: "Dr. Johnson",
+      fileSize: "3.5 MB",
+      status: "Verified",
+    },
+    {
+      id: "D10067",
+      patientId: "P10067",
+      patientName: "Robert Brown",
+      date: "2023-10-20",
+      documentType: "MRI Scan",
+      fileName: "robert_brown_mri.dcm",
+      uploadedBy: "Dr. Williams",
+      fileSize: "15.8 MB",
+      status: "Verified",
+    },
+    {
+      id: "D10089",
+      patientId: "P10089",
+      patientName: "Emily Davis",
+      date: "2023-10-22",
+      documentType: "Ultrasound Report",
+      fileName: "emily_davis_ultrasound.pdf",
+      uploadedBy: "Dr. Brown",
+      fileSize: "780 KB",
+      status: "Verified",
+    },
+    {
+      id: "D10112",
+      patientId: "P10112",
+      patientName: "Michael Wilson",
+      date: "2023-10-25",
+      documentType: "ECG Report",
+      fileName: "michael_wilson_ecg.pdf",
+      uploadedBy: "Dr. Smith",
+      fileSize: "450 KB",
+      status: "Verified",
+    },
+    {
+      id: "D10113",
+      patientId: "P10113",
+      patientName: "Sarah Johnson",
+      date: "2023-11-05",
+      documentType: "Prescription",
+      fileName: "sarah_johnson_prescription.pdf",
+      uploadedBy: "Dr. Martinez",
+      fileSize: "125 KB",
+      status: "Verified",
+    },
+    {
+      id: "D10114",
+      patientId: "P10113",
+      patientName: "Sarah Johnson",
+      date: "2023-11-05",
+      documentType: "Consent Form",
+      fileName: "sarah_johnson_consent.pdf",
+      uploadedBy: "Dr. Martinez",
+      fileSize: "95 KB",
+      status: "Pending",
+    },
+    {
+      id: "D10115",
+      patientId: "P10114",
+      patientName: "David Lee",
+      date: "2023-11-08",
+      documentType: "Chest X-Ray",
+      fileName: "david_lee_chest_xray.jpg",
+      uploadedBy: "Dr. Anderson",
+      fileSize: "2.8 MB",
+      status: "Verified",
+    },
+    {
+      id: "D10116",
+      patientId: "P10114",
+      patientName: "David Lee",
+      date: "2023-11-08",
+      documentType: "Lab Report",
+      fileName: "david_lee_sputum_culture.pdf",
+      uploadedBy: "Dr. Anderson",
+      fileSize: "320 KB",
+      status: "Verified",
+    },
+    {
+      id: "D10117",
+      patientId: "P10115",
+      patientName: "Jennifer White",
+      date: "2023-11-10",
+      documentType: "Biopsy Report",
+      fileName: "jennifer_white_biopsy.pdf",
+      uploadedBy: "Dr. Wilson",
+      fileSize: "1.5 MB",
+      status: "Pending",
+    },
+    {
+      id: "D10118",
+      patientId: "P10116",
+      patientName: "Thomas Martin",
+      date: "2023-11-12",
+      documentType: "Insurance Form",
+      fileName: "thomas_martin_insurance.pdf",
+      uploadedBy: "Dr. Smith",
+      fileSize: "350 KB",
+      status: "Uploaded",
+    },
+    {
+      id: "D10119",
+      patientId: "P10116",
+      patientName: "Thomas Martin",
+      date: "2023-11-12",
+      documentType: "ECG Report",
+      fileName: "thomas_martin_ecg.pdf",
+      uploadedBy: "Dr. Smith",
+      fileSize: "480 KB",
+      status: "Verified",
+    },
+    {
+      id: "D10120",
+      patientId: "P10117",
+      patientName: "Lisa Garcia",
+      date: "2023-11-14",
+      documentType: "Medical History",
+      fileName: "lisa_garcia_history.pdf",
+      uploadedBy: "Dr. Thompson",
+      fileSize: "1.8 MB",
+      status: "Verified",
+    },
+  ];
+
   // Filter data based on search query and other filters
   const filterData = (data: any[], query: string) => {
     return data.filter((item) => {
@@ -813,7 +972,7 @@ const PatientReports: React.FC<PatientReportsProps> = ({
           onValueChange={setActiveReport}
           className="space-y-4"
         >
-          <TabsList className="grid grid-cols-2 md:grid-cols-5 gap-2">
+          <TabsList className="grid grid-cols-2 md:grid-cols-6 gap-2">
             <TabsTrigger
               value="demographics"
               className="flex items-center gap-2"
@@ -837,6 +996,10 @@ const PatientReports: React.FC<PatientReportsProps> = ({
               <FileText className="h-4 w-4" />
               <span>Lab Reports</span>
             </TabsTrigger>
+            <TabsTrigger value="documents" className="flex items-center gap-2">
+              <File className="h-4 w-4" />
+              <span>Documents</span>
+            </TabsTrigger>
           </TabsList>
 
           <Card>
@@ -847,10 +1010,10 @@ const PatientReports: React.FC<PatientReportsProps> = ({
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-4">
-                <div className="space-y-2">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-4 mb-4">
+                <div className="space-y-2 col-span-1 md:col-span-6">
                   <label className="text-sm font-medium">Date Range</label>
-                  <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+                  <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2">
                     <DatePicker
                       selected={dateRange.from}
                       onSelect={(date) =>
@@ -869,7 +1032,7 @@ const PatientReports: React.FC<PatientReportsProps> = ({
                 </div>
 
                 {activeReport !== "demographics" && (
-                  <div className="space-y-2">
+                  <div className="space-y-2 col-span-1 md:col-span-2">
                     <label className="text-sm font-medium">Department</label>
                     <Select value={department} onValueChange={setDepartment}>
                       <SelectTrigger>
@@ -889,8 +1052,9 @@ const PatientReports: React.FC<PatientReportsProps> = ({
 
                 {(activeReport === "visits" ||
                   activeReport === "lab" ||
-                  activeReport === "admissions") && (
-                  <div className="space-y-2">
+                  activeReport === "admissions" ||
+                  activeReport === "documents") && (
+                  <div className="space-y-2 col-span-1 md:col-span-2">
                     <label className="text-sm font-medium">Doctor</label>
                     <Select value={doctor} onValueChange={setDoctor}>
                       <SelectTrigger>
@@ -909,7 +1073,7 @@ const PatientReports: React.FC<PatientReportsProps> = ({
                   </div>
                 )}
 
-                <div className="space-y-2">
+                <div className="space-y-2 col-span-1 md:col-span-2">
                   <label className="text-sm font-medium">Report Format</label>
                   <Select value={reportFormat} onValueChange={setReportFormat}>
                     <SelectTrigger>
@@ -922,7 +1086,7 @@ const PatientReports: React.FC<PatientReportsProps> = ({
                   </Select>
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-2 col-span-1 md:col-span-2">
                   <label className="text-sm font-medium">Search</label>
                   <div className="relative">
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -989,6 +1153,7 @@ const PatientReports: React.FC<PatientReportsProps> = ({
                     {activeReport === "admissions" &&
                       "Patient Admissions Report"}
                     {activeReport === "lab" && "Patient Lab Reports"}
+                    {activeReport === "documents" && "Patient Documents Report"}
                   </CardTitle>
                   <CardDescription className="print:text-black">
                     {dateRange.from && dateRange.to
@@ -1061,6 +1226,17 @@ const PatientReports: React.FC<PatientReportsProps> = ({
                     onPrint={handlePrintReport}
                   />
                 )}
+
+                {/* Documents */}
+                {activeReport === "documents" && (
+                  <PatientDocumentReport
+                    data={filterData(patientDocuments, localSearchQuery)}
+                    dateRange={dateRange}
+                    department={department}
+                    doctor={doctor}
+                    onPrint={handlePrintReport}
+                  />
+                )}
               </CardContent>
             </Card>
           )}
@@ -1083,6 +1259,7 @@ const PatientReports: React.FC<PatientReportsProps> = ({
               {activeReport === "billing" && "Patient Billing Report"}
               {activeReport === "admissions" && "Patient Admissions Report"}
               {activeReport === "lab" && "Patient Lab Reports"}
+              {activeReport === "documents" && "Patient Documents Report"}
             </h2>
             <p className="text-sm mt-2">
               Report Date: {new Date().toLocaleDateString()} | Period:{" "}

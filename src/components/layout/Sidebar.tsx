@@ -146,6 +146,14 @@ const NavItem = ({
       Appointments: <CalendarClock size={16} />,
       Consultations: <StethoscopeIcon size={16} />,
       Billing: <Receipt size={16} />,
+      Diseases: <AlertCircle size={16} />,
+      Symptoms: <Activity size={16} />,
+      Tests: <TestTube size={16} />,
+      Dosage: <Pill size={16} />,
+      Days: <Clock size={16} />,
+      "Pending Patients": <ClipboardList size={16} />,
+      "OPD Checkup": <StethoscopeIcon size={16} />,
+      "OPD Billing": <Receipt size={16} />,
 
       // IPD
       Admissions: <BedDouble size={16} />,
@@ -521,27 +529,18 @@ const Sidebar = ({
       label: "OPD",
       icon: <Stethoscope size={20} />,
       subItems: [
+        { id: "diseases", label: "Diseases", href: "/opd/diseases" },
+        { id: "symptoms", label: "Symptoms", href: "/opd/symptoms" },
+        { id: "tests", label: "Tests", href: "/opd/tests" },
+        { id: "dosage", label: "Dosage", href: "/opd/dosage" },
+        { id: "days", label: "Days", href: "/opd/days" },
         {
-          id: "management",
-          label: "Management",
-          href: "/patients/opd",
+          id: "pending-patients",
+          label: "Pending Patients",
+          href: "/opd/pending-patients",
         },
-        {
-          id: "appointments",
-          label: "Appointments",
-          href: "/patients/opd/appointments",
-        },
-        {
-          id: "visits",
-          label: "Visits",
-          href: "/patients/opd/visits",
-        },
-        {
-          id: "queue",
-          label: "Today's Queue",
-          href: "/patients/opd/queue",
-        },
-        { id: "billing", label: "Billing", href: "/opd/billing" },
+        { id: "checkup", label: "OPD Checkup", href: "/opd/checkup" },
+        { id: "billing", label: "OPD Billing", href: "/opd/billing" },
       ],
     },
     {

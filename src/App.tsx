@@ -45,6 +45,14 @@ import OPDVisitList from "./components/patients/opd/OPDVisitList";
 import OPDQueue from "./components/patients/opd/OPDQueue";
 import OPDAppointments from "./components/patients/opd/OPDAppointments";
 
+// Import OPD definition components
+import DiseasesForm from "./components/opd/definitions/DiseasesForm";
+import SymptomsForm from "./components/opd/definitions/SymptomsForm";
+import TestsForm from "./components/opd/definitions/TestsForm";
+import DosageForm from "./components/opd/definitions/DosageForm";
+import DaysForm from "./components/opd/definitions/DaysForm";
+import PendingPatients from "./components/opd/PendingPatients";
+
 // Lazy load dashboard components
 const AdminDashboard = lazy(
   () => import("./components/dashboard/AdminDashboard"),
@@ -55,6 +63,10 @@ const PharmacyDashboard = lazy(
 const OPDDashboard = lazy(() => import("./components/dashboard/OPDDashboard"));
 const IPDDashboard = lazy(() => import("./components/dashboard/IPDDashboard"));
 const LabDashboard = lazy(() => import("./components/dashboard/LabDashboard"));
+
+// Lazy load OPD components
+const OPDCheckup = lazy(() => import("./pages/opd/checkup"));
+const OPDBilling = lazy(() => import("./pages/opd/billing"));
 
 // Lazy load records components
 // Using direct imports for CategoryForm and DepartmentForm
@@ -171,6 +183,18 @@ function App() {
                 <Route path="returns/edit/:id" element={<SalesReturnForm />} />
                 <Route path="reports" element={<SalesReportList />} />
               </Route>
+            </Route>
+
+            {/* OPD routes */}
+            <Route path="/opd">
+              <Route path="diseases" element={<DiseasesForm />} />
+              <Route path="symptoms" element={<SymptomsForm />} />
+              <Route path="tests" element={<TestsForm />} />
+              <Route path="dosage" element={<DosageForm />} />
+              <Route path="days" element={<DaysForm />} />
+              <Route path="pending-patients" element={<PendingPatients />} />
+              <Route path="checkup" element={<OPDCheckup />} />
+              <Route path="billing" element={<OPDBilling />} />
             </Route>
 
             {/* Patient Management routes */}
