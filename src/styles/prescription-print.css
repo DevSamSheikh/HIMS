@@ -1,0 +1,102 @@
+@media print {
+  /* Hide everything except the prescription content */
+  body * {
+    visibility: hidden;
+  }
+
+  #prescription-content,
+  #prescription-content *,
+  #alternative-prescription-content,
+  #alternative-prescription-content * {
+    visibility: visible;
+  }
+
+  #prescription-content,
+  #alternative-prescription-content {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 20px;
+    background-color: white;
+  }
+
+  /* Hide buttons and other UI elements */
+  button,
+  .dialog-footer,
+  [data-radix-popper-content-wrapper] {
+    display: none !important;
+  }
+
+  /* Ensure proper page breaks */
+  .page-break {
+    page-break-after: always;
+  }
+
+  /* Adjust font sizes for print */
+  h1 {
+    font-size: 18pt !important;
+  }
+
+  h2 {
+    font-size: 16pt !important;
+  }
+
+  h3 {
+    font-size: 14pt !important;
+  }
+
+  p,
+  td,
+  th,
+  div {
+    font-size: 12pt !important;
+  }
+
+  .text-sm {
+    font-size: 10pt !important;
+  }
+
+  .text-xs {
+    font-size: 8pt !important;
+  }
+
+  /* Ensure borders print properly */
+  .border,
+  .border-b,
+  .border-t,
+  .border-l,
+  .border-r {
+    border-color: #000 !important;
+    border-width: 1px !important;
+  }
+
+  /* Ensure background colors print */
+  .bg-primary,
+  .bg-secondary,
+  .bg-muted,
+  .bg-accent {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Adjust table for printing */
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+
+  th,
+  td {
+    border: 1px solid #ddd !important;
+    padding: 8px !important;
+  }
+
+  /* Ensure badges print properly */
+  .badge {
+    border: 1px solid #000 !important;
+    padding: 2px 6px !important;
+    border-radius: 4px !important;
+    display: inline-block !important;
+  }
+}

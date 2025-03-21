@@ -66,6 +66,7 @@ import {
   CheckCircle,
   Edit,
   Sliders,
+  DoorClosed,
 } from "lucide-react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 
@@ -156,9 +157,13 @@ const NavItem = ({
       "OPD Billing": <Receipt size={16} />,
 
       // IPD
-      Admissions: <BedDouble size={16} />,
+      Dashboard: <LayoutDashboard size={16} />,
       Wards: <Building2 size={16} />,
-      Discharges: <Clipboard size={16} />,
+      Rooms: <DoorClosed size={16} />,
+      Beds: <BedDouble size={16} />,
+      Services: <Stethoscope size={16} />,
+      "Patient Treatments": <ClipboardList size={16} />,
+      Billing: <Receipt size={16} />,
 
       // Pharmacy
       Items: <Pill size={16} />,
@@ -514,13 +519,6 @@ const Sidebar = ({
       label: "Patient Management",
       icon: <Users size={20} />,
       subItems: [
-        {
-          id: "registration",
-          label: "Registration",
-          href: "/patients/registration",
-        },
-        { id: "search", label: "Search", href: "/patients/search" },
-        { id: "records", label: "Records", href: "/patients/records" },
         { id: "management", label: "Management", href: "/patients/management" },
       ],
     },
@@ -546,11 +544,19 @@ const Sidebar = ({
     {
       id: "ipd",
       label: "IPD",
-      icon: <Calendar size={20} />,
+      icon: <BedDouble size={20} />,
       subItems: [
-        { id: "admissions", label: "Admissions", href: "/ipd/admissions" },
+        { id: "dashboard", label: "Dashboard", href: "/ipd" },
         { id: "wards", label: "Wards", href: "/ipd/wards" },
-        { id: "discharges", label: "Discharges", href: "/ipd/discharges" },
+        { id: "rooms", label: "Rooms", href: "/ipd/rooms" },
+        { id: "beds", label: "Beds", href: "/ipd/beds" },
+        { id: "services", label: "Services", href: "/ipd/services" },
+        {
+          id: "treatments",
+          label: "Patient Treatments",
+          href: "/ipd/treatments",
+        },
+        { id: "billing", label: "Billing", href: "/ipd/billing" },
       ],
     },
     {

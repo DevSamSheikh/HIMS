@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -73,8 +73,13 @@ interface SalesInvoice {
 const SalesInvoiceForm: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
   const isEditing = !!id;
+
+  // Get checkupId from URL query params if it exists
+  const queryParams = new URLSearchParams(location.search);
+  const checkupId = queryParams.get("checkupId");
 
   // Sample data for demonstration
   const [customers] = useState<Customer[]>([
@@ -223,7 +228,77 @@ const SalesInvoiceForm: React.FC = () => {
   const [availableBatches, setAvailableBatches] = useState<Batch[]>([]);
   const [selectedBatchQty, setSelectedBatchQty] = useState<number>(0);
 
-  // Load invoice data if editing
+  // Mock data for prescriptions/checkups
+  const mockCheckups = [
+    {
+      id: "C001",
+      date: "2023-10-15",
+      patient: {
+        id: "P001",
+        name: "John Doe",
+        age: 45,
+        gender: "Male",
+        contact: "9876543210",
+      },
+      medications: [
+        {
+          medicine: {
+            id: "item-001",
+            name: "Cetirizine",
+            category: "Antihistamine",
+            unitPrice: 5.99,
+          },
+          dosage: { name: "Once daily", frequency: "1-0-0" },
+          days: { name: "7 Days", value: 7 },
+        },
+        {
+          medicine: {
+            id: "item-002",
+            name: "Paracetamol",
+            category: "Analgesic",
+            unitPrice: 8.75,
+          },
+          dosage: { name: "Three times daily", frequency: "1-1-1" },
+          days: { name: "3 Days", value: 3 },
+        },
+      ],
+    },
+    {
+      id: "C003",
+      date: "2023-10-17",
+      patient: {
+        id: "P003",
+        name: "Robert Brown",
+        age: 58,
+        gender: "Male",
+        contact: "9876543212",
+      },
+      medications: [
+        {
+          medicine: {
+            id: "item-003",
+            name: "Amlodipine",
+            category: "Calcium Channel Blocker",
+            unitPrice: 12.5,
+          },
+          dosage: { name: "Once daily", frequency: "1-0-0" },
+          days: { name: "30 Days", value: 30 },
+        },
+        {
+          medicine: {
+            id: "item-004",
+            name: "Metformin",
+            category: "Antidiabetic",
+            unitPrice: 9.99,
+          },
+          dosage: { name: "Twice daily", frequency: "1-0-1" },
+          days: { name: "30 Days", value: 30 },
+        },
+      ],
+    },
+  ];
+
+  // Load invoice data if editing or from prescription
   useEffect(() => {
     if (isEditing) {
       // In a real application, you would fetch the invoice data from an API
@@ -276,8 +351,48 @@ const SalesInvoiceForm: React.FC = () => {
           ],
         });
       }
+    } else if (checkupId) {
+      // If creating from prescription, load prescription data
+      const checkup = mockCheckups.find((c) => c.id === checkupId);
+      if (checkup) {
+        // Create invoice items from prescription medications
+        const invoiceItems = checkup.medications.map((med) => {
+          const quantity = med.days.value;
+          const unitPrice = med.medicine.unitPrice;
+          const total = quantity * unitPrice;
+          const tax = total * 0.05; // 5% tax
+
+          return {
+            id: `line-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+            itemId: med.medicine.id,
+            itemName: med.medicine.name,
+            batchId: "", // This would need to be selected by the user
+            batchNo: "",
+            batchQty: 0,
+            quantity: quantity,
+            unitPrice: unitPrice,
+            discount: 0,
+            tax: tax,
+            total: total,
+          };
+        });
+
+        // Set invoice with prescription data
+        setInvoice((prev) => ({
+          ...prev,
+          customerId: `cust-${checkup.patient.id}`,
+          customerName: checkup.patient.name,
+          notes: `Prescription from checkup ${checkupId}`,
+          items: invoiceItems,
+        }));
+
+        toast({
+          title: "Prescription Loaded",
+          description: `Prescription for ${checkup.patient.name} has been loaded. Please review and complete the invoice.`,
+        });
+      }
     }
-  }, [id, isEditing]);
+  }, [id, isEditing, checkupId, toast]);
 
   // Calculate totals whenever invoice items change
   useEffect(() => {

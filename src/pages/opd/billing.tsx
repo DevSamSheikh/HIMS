@@ -2,11 +2,11 @@ import React from "react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import {
   Card,
-  CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import CompletedCheckupsList from "@/components/opd/billing/CompletedCheckupsList";
 
 const OPDBillingPage = () => {
   return (
@@ -19,13 +19,7 @@ const OPDBillingPage = () => {
               Manage billing for OPD consultations and services
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-center h-64 border-2 border-dashed rounded-md">
-              <p className="text-muted-foreground">
-                OPD Billing module coming soon...
-              </p>
-            </div>
-          </CardContent>
+          <CompletedCheckupsList />
         </Card>
       </div>
     </DashboardLayout>

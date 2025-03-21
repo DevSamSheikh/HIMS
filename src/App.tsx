@@ -53,6 +53,19 @@ import DosageForm from "./components/opd/definitions/DosageForm";
 import DaysForm from "./components/opd/definitions/DaysForm";
 import PendingPatients from "./components/opd/PendingPatients";
 
+// Import IPD components
+import IPDLayout from "./components/ipd/IPDLayout";
+import IPDDashboardComponent from "./components/ipd/IPDDashboard";
+import WardForm from "./components/ipd/definitions/WardForm";
+import RoomForm from "./components/ipd/definitions/RoomForm";
+import BedForm from "./components/ipd/definitions/BedForm";
+import ServiceForm from "./components/ipd/definitions/ServiceForm";
+import PatientTreatment from "./components/ipd/PatientTreatment";
+import IPDBilling from "./components/ipd/IPDBilling";
+
+// Import Pharmacy Prescriptions page
+import PrescriptionsPage from "./pages/pharmacy/prescriptions";
+
 // Lazy load dashboard components
 const AdminDashboard = lazy(
   () => import("./components/dashboard/AdminDashboard"),
@@ -166,10 +179,7 @@ function App() {
                 />
                 <Route path="reports" element={<PurchaseReportList />} />
               </Route>
-              <Route
-                path="prescriptions"
-                element={<div className="p-6">Prescriptions coming soon</div>}
-              />
+              <Route path="prescriptions" element={<PrescriptionsPage />} />
               <Route path="sales" element={<SalesLayout />}>
                 <Route index element={<Navigate to="invoices" replace />} />
                 <Route path="invoices" element={<SalesInvoiceList />} />
@@ -195,6 +205,17 @@ function App() {
               <Route path="pending-patients" element={<PendingPatients />} />
               <Route path="checkup" element={<OPDCheckup />} />
               <Route path="billing" element={<OPDBilling />} />
+            </Route>
+
+            {/* IPD routes */}
+            <Route path="/ipd" element={<IPDLayout />}>
+              <Route index element={<IPDDashboardComponent />} />
+              <Route path="wards" element={<WardForm />} />
+              <Route path="rooms" element={<RoomForm />} />
+              <Route path="beds" element={<BedForm />} />
+              <Route path="services" element={<ServiceForm />} />
+              <Route path="treatments" element={<PatientTreatment />} />
+              <Route path="billing" element={<IPDBilling />} />
             </Route>
 
             {/* Patient Management routes */}
