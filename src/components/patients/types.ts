@@ -23,6 +23,8 @@ export interface Patient {
   chronicDiseases?: string[];
   notes?: string;
   tokenNumber?: string;
+  profileImage?: string;
+  dateOfBirth?: string;
 }
 
 export interface OPDVisit {

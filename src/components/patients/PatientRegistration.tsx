@@ -32,6 +32,9 @@ import MRNumberSettings, {
   MRNumberConfig,
 } from "@/components/settings/MRNumberSettings";
 import TokenPrintModal from "./TokenPrintModal";
+import ProfileImageUpload from "./ProfileImageUpload";
+import PatientCard from "./PatientCard";
+import GeneratePatientCardButton from "./GeneratePatientCardButton";
 
 interface PatientRegistrationProps {
   isOpen: boolean;
@@ -59,6 +62,8 @@ const PatientRegistration: React.FC<PatientRegistrationProps> = ({
     guardianRelation: "",
     guardianContact: "",
     patientType: [],
+    profileImage: "",
+    dateOfBirth: "",
   });
 
   const [step, setStep] = useState<number>(1);
@@ -70,6 +75,10 @@ const PatientRegistration: React.FC<PatientRegistrationProps> = ({
   const [tokenPrintModalOpen, setTokenPrintModalOpen] =
     useState<boolean>(false);
   const [tokenData, setTokenData] = useState<any>(null);
+  const [patientCardOpen, setPatientCardOpen] = useState<boolean>(false);
+  const [registeredPatient, setRegisteredPatient] = useState<Patient | null>(
+    null,
+  );
 
   // Generate MR number when component mounts
   useEffect(() => {
@@ -77,6 +86,18 @@ const PatientRegistration: React.FC<PatientRegistrationProps> = ({
     const mrNumber = generateMRNumber(lastNumber);
     setGeneratedMRNumber(mrNumber);
   }, []);
+
+  // Debug registered patient
+  useEffect(() => {
+    if (registeredPatient) {
+      console.log("Registered patient:", registeredPatient);
+    }
+  }, [registeredPatient]);
+
+  // Debug patient card modal state
+  useEffect(() => {
+    console.log("Patient card modal open:", patientCardOpen);
+  }, [patientCardOpen]);
 
   const validateStep1 = () => {
     const newErrors: Record<string, string> = {};
@@ -140,6 +161,8 @@ const PatientRegistration: React.FC<PatientRegistrationProps> = ({
       chronicDiseases: formData.chronicDiseases,
       notes: formData.notes,
       tokenNumber: tokenNumber,
+      profileImage: formData.profileImage,
+      dateOfBirth: formData.dateOfBirth,
     };
 
     // Prepare token data for printing
@@ -151,6 +174,10 @@ const PatientRegistration: React.FC<PatientRegistrationProps> = ({
       date: now.toLocaleDateString(),
       time: now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     });
+
+    // Store the registered patient for the card
+    setRegisteredPatient(newPatient);
+    console.log("Setting registered patient:", newPatient);
 
     onSuccess(newPatient);
 
@@ -171,6 +198,14 @@ const PatientRegistration: React.FC<PatientRegistrationProps> = ({
         patientType: [...currentTypes, type],
       });
     }
+  };
+
+  const handleTokenModalClose = () => {
+    setTokenPrintModalOpen(false);
+    // Ensure we show the patient card after token modal is closed
+    setTimeout(() => {
+      setPatientCardOpen(true);
+    }, 100);
   };
 
   return (
@@ -219,6 +254,16 @@ const PatientRegistration: React.FC<PatientRegistrationProps> = ({
               </div>
             </div>
 
+            <div className="flex justify-center mb-4">
+              <ProfileImageUpload
+                initialImage={formData.profileImage}
+                onImageChange={(imageUrl) =>
+                  setFormData({ ...formData, profileImage: imageUrl })
+                }
+                name={formData.name || ""}
+              />
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label
@@ -254,6 +299,21 @@ const PatientRegistration: React.FC<PatientRegistrationProps> = ({
             </div>
 
             <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="dateOfBirth">Date of Birth</Label>
+                <Input
+                  id="dateOfBirth"
+                  type="date"
+                  value={formData.dateOfBirth || ""}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      dateOfBirth: e.target.value,
+                    })
+                  }
+                  max={new Date().toISOString().split("T")[0]}
+                />
+              </div>
               <div className="space-y-2">
                 <Label
                   htmlFor="age"
@@ -637,9 +697,46 @@ const PatientRegistration: React.FC<PatientRegistrationProps> = ({
       {tokenPrintModalOpen && tokenData && (
         <TokenPrintModal
           isOpen={tokenPrintModalOpen}
-          onClose={() => setTokenPrintModalOpen(false)}
+          onClose={handleTokenModalClose}
           tokenData={tokenData}
         />
+      )}
+
+      {/* Direct Patient Card Button - For immediate access */}
+      {registeredPatient && (
+        <div className="fixed bottom-4 right-4 z-50">
+          <GeneratePatientCardButton
+            patient={registeredPatient}
+            variant="secondary"
+            className="shadow-lg"
+          />
+        </div>
+      )}
+
+      {/* Patient Card Modal */}
+      {patientCardOpen && registeredPatient && (
+        <Dialog
+          open={patientCardOpen}
+          onOpenChange={(open) => {
+            setPatientCardOpen(open);
+            if (!open) {
+              onClose();
+            }
+          }}
+        >
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Patient Identification Card</DialogTitle>
+              <DialogDescription>
+                Print this card for the patient to use for future visits
+              </DialogDescription>
+            </DialogHeader>
+            <PatientCard
+              patient={registeredPatient}
+              onClose={() => setPatientCardOpen(false)}
+            />
+          </DialogContent>
+        </Dialog>
       )}
     </Dialog>
   );

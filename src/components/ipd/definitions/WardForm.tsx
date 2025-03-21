@@ -5,8 +5,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import DataTable from "@/components/ui/data-table";
-import { PlusCircle, Building2 } from "lucide-react";
+import { PlusCircle, Building2, Users, Search } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface Ward {
   id: string;
@@ -21,6 +29,7 @@ interface Ward {
 
 const WardForm = () => {
   const { toast } = useToast();
+  const [showOccupancyModal, setShowOccupancyModal] = useState(false);
   const [wards, setWards] = useState<Ward[]>([
     {
       id: "ward-1",
@@ -152,7 +161,7 @@ const WardForm = () => {
             Define and manage hospital wards and their capacities
           </p>
         </div>
-        <Button>
+        <Button onClick={() => setShowOccupancyModal(true)}>
           <Building2 className="mr-2 h-4 w-4" />
           View Ward Occupancy
         </Button>
@@ -176,6 +185,190 @@ const WardForm = () => {
           />
         </CardContent>
       </Card>
+
+      {/* Ward Occupancy Modal */}
+      <Dialog open={showOccupancyModal} onOpenChange={setShowOccupancyModal}>
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Ward Occupancy</DialogTitle>
+          </DialogHeader>
+          <div className="mt-4">
+            <Tabs defaultValue="grid" className="w-full">
+              <TabsList className="mb-4">
+                <TabsTrigger value="grid">Grid View</TabsTrigger>
+                <TabsTrigger value="list">List View</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="grid" className="w-full">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {wards.map((ward) => {
+                    // Mock data for occupancy
+                    const totalBeds = ward.capacity;
+                    const occupiedBeds = Math.floor(
+                      Math.random() * (totalBeds + 1),
+                    );
+                    const occupancyPercentage =
+                      (occupiedBeds / totalBeds) * 100;
+
+                    // Determine color based on occupancy
+                    let occupancyColor = "bg-green-500";
+                    if (occupancyPercentage === 100)
+                      occupancyColor = "bg-red-500";
+                    else if (occupancyPercentage >= 75)
+                      occupancyColor = "bg-orange-500";
+                    else if (occupancyPercentage >= 50)
+                      occupancyColor = "bg-amber-500";
+                    else if (occupancyPercentage > 0)
+                      occupancyColor = "bg-emerald-500";
+
+                    // Determine status color
+                    const statusColors: Record<string, string> = {
+                      active: "bg-green-100 border-green-300 text-green-800",
+                      inactive: "bg-gray-100 border-gray-300 text-gray-800",
+                      maintenance:
+                        "bg-amber-100 border-amber-300 text-amber-800",
+                    };
+
+                    return (
+                      <div
+                        key={ward.id}
+                        className={`border rounded-lg overflow-hidden ${statusColors[ward.status]}`}
+                      >
+                        <div className="p-4">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h3 className="text-lg font-semibold flex items-center">
+                                <Building2 className="mr-2 h-4 w-4" />
+                                {ward.name}
+                              </h3>
+                              <p className="text-sm">{ward.department}</p>
+                            </div>
+                            <Badge
+                              variant="outline"
+                              className={statusColors[ward.status]}
+                            >
+                              {ward.status.charAt(0).toUpperCase() +
+                                ward.status.slice(1)}
+                            </Badge>
+                          </div>
+
+                          <div className="mt-4">
+                            <div className="flex justify-between text-sm mb-1">
+                              <span>Occupancy</span>
+                              <span>
+                                {occupiedBeds}/{totalBeds} beds
+                              </span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2.5">
+                              <div
+                                className={`h-2.5 rounded-full ${occupancyColor}`}
+                                style={{ width: `${occupancyPercentage}%` }}
+                              ></div>
+                            </div>
+                          </div>
+
+                          <div className="mt-4 flex justify-between items-center">
+                            <span className="text-sm">{ward.floor}</span>
+                            <div className="flex items-center">
+                              <Users className="h-4 w-4 mr-1" />
+                              <span className="text-sm font-medium">
+                                {ward.capacity} beds
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="list">
+                <Card>
+                  <CardContent className="p-0">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b">
+                          <th className="text-left p-3">Ward Name</th>
+                          <th className="text-left p-3">Department</th>
+                          <th className="text-left p-3">Floor</th>
+                          <th className="text-left p-3">Capacity</th>
+                          <th className="text-left p-3">Occupancy</th>
+                          <th className="text-left p-3">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {wards.map((ward) => {
+                          // Mock data for occupancy
+                          const totalBeds = ward.capacity;
+                          const occupiedBeds = Math.floor(
+                            Math.random() * (totalBeds + 1),
+                          );
+                          const occupancyPercentage =
+                            (occupiedBeds / totalBeds) * 100;
+
+                          // Determine color based on occupancy
+                          let occupancyColor = "bg-green-500";
+                          if (occupancyPercentage === 100)
+                            occupancyColor = "bg-red-500";
+                          else if (occupancyPercentage >= 75)
+                            occupancyColor = "bg-orange-500";
+                          else if (occupancyPercentage >= 50)
+                            occupancyColor = "bg-amber-500";
+                          else if (occupancyPercentage > 0)
+                            occupancyColor = "bg-emerald-500";
+
+                          return (
+                            <tr
+                              key={ward.id}
+                              className="border-b hover:bg-muted/50"
+                            >
+                              <td className="p-3 font-medium">{ward.name}</td>
+                              <td className="p-3">{ward.department}</td>
+                              <td className="p-3">{ward.floor}</td>
+                              <td className="p-3">{ward.capacity}</td>
+                              <td className="p-3">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-full max-w-24 bg-gray-200 rounded-full h-2">
+                                    <div
+                                      className={`h-2 rounded-full ${occupancyColor}`}
+                                      style={{
+                                        width: `${occupancyPercentage}%`,
+                                      }}
+                                    ></div>
+                                  </div>
+                                  <span className="text-xs">
+                                    {occupiedBeds}/{totalBeds}
+                                  </span>
+                                </div>
+                              </td>
+                              <td className="p-3">
+                                <Badge
+                                  variant="outline"
+                                  className={
+                                    ward.status === "active"
+                                      ? "bg-green-100 text-green-800"
+                                      : ward.status === "maintenance"
+                                        ? "bg-amber-100 text-amber-800"
+                                        : "bg-gray-100 text-gray-800"
+                                  }
+                                >
+                                  {ward.status.charAt(0).toUpperCase() +
+                                    ward.status.slice(1)}
+                                </Badge>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

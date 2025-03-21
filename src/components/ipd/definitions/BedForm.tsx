@@ -1,8 +1,16 @@
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import DataTable from "@/components/ui/data-table";
-import { PlusCircle, BedDouble } from "lucide-react";
+import { PlusCircle, BedDouble, Search, Users } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import SearchableSelect from "@/components/ui/searchable-select";
 
@@ -23,6 +31,7 @@ interface Bed {
 
 const BedForm = () => {
   const { toast } = useToast();
+  const [showOccupancyModal, setShowOccupancyModal] = useState(false);
 
   // Mock data for wards
   const wards = [
@@ -270,7 +279,7 @@ const BedForm = () => {
             Define and manage hospital beds and their allocation
           </p>
         </div>
-        <Button>
+        <Button onClick={() => setShowOccupancyModal(true)}>
           <BedDouble className="mr-2 h-4 w-4" />
           View Bed Occupancy
         </Button>
@@ -294,6 +303,157 @@ const BedForm = () => {
           />
         </CardContent>
       </Card>
+
+      {/* Bed Occupancy Modal */}
+      <Dialog open={showOccupancyModal} onOpenChange={setShowOccupancyModal}>
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Bed Occupancy</DialogTitle>
+          </DialogHeader>
+          <div className="mt-4">
+            <Tabs defaultValue="grid" className="w-full">
+              <TabsList className="mb-4">
+                <TabsTrigger value="grid">Grid View</TabsTrigger>
+                <TabsTrigger value="list">List View</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="grid" className="w-full">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {beds.map((bed) => {
+                    // Determine status color
+                    const statusColors: Record<string, string> = {
+                      available: "bg-green-100 border-green-300 text-green-800",
+                      occupied: "bg-red-100 border-red-300 text-red-800",
+                      maintenance:
+                        "bg-amber-100 border-amber-300 text-amber-800",
+                      reserved: "bg-blue-100 border-blue-300 text-blue-800",
+                    };
+
+                    return (
+                      <div
+                        key={bed.id}
+                        className={`border rounded-lg overflow-hidden ${statusColors[bed.status]}`}
+                      >
+                        <div className="p-4">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h3 className="text-lg font-semibold flex items-center">
+                                <BedDouble className="mr-2 h-4 w-4" />
+                                Bed {bed.bedNumber}
+                              </h3>
+                              <p className="text-sm">
+                                {bed.wardName} - Room {bed.roomNumber}
+                              </p>
+                            </div>
+                            <Badge
+                              variant="outline"
+                              className={statusColors[bed.status]}
+                            >
+                              {bed.status.charAt(0).toUpperCase() +
+                                bed.status.slice(1)}
+                            </Badge>
+                          </div>
+
+                          <div className="mt-4">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium">Type:</span>
+                              <span className="text-sm">{bed.bedType}</span>
+                            </div>
+                            {bed.currentPatientName && (
+                              <div className="mt-2 p-2 bg-blue-50 rounded-md">
+                                <div className="text-sm font-medium">
+                                  Current Patient:
+                                </div>
+                                <div className="text-sm">
+                                  {bed.currentPatientName}
+                                </div>
+                                <div className="text-xs text-muted-foreground">
+                                  {bed.currentPatientId}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="mt-4 flex justify-between items-center">
+                            <span className="text-xs">
+                              Last Sanitized: {bed.lastSanitized}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="list">
+                <Card>
+                  <CardContent className="p-0">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b">
+                          <th className="text-left p-3">Bed Number</th>
+                          <th className="text-left p-3">Ward</th>
+                          <th className="text-left p-3">Room</th>
+                          <th className="text-left p-3">Type</th>
+                          <th className="text-left p-3">Status</th>
+                          <th className="text-left p-3">Current Patient</th>
+                          <th className="text-left p-3">Last Sanitized</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {beds.map((bed) => {
+                          return (
+                            <tr
+                              key={bed.id}
+                              className="border-b hover:bg-muted/50"
+                            >
+                              <td className="p-3 font-medium">
+                                {bed.bedNumber}
+                              </td>
+                              <td className="p-3">{bed.wardName}</td>
+                              <td className="p-3">{bed.roomNumber}</td>
+                              <td className="p-3">{bed.bedType}</td>
+                              <td className="p-3">
+                                <Badge
+                                  variant="outline"
+                                  className={
+                                    bed.status === "available"
+                                      ? "bg-green-100 text-green-800"
+                                      : bed.status === "occupied"
+                                        ? "bg-red-100 text-red-800"
+                                        : bed.status === "maintenance"
+                                          ? "bg-amber-100 text-amber-800"
+                                          : "bg-blue-100 text-blue-800"
+                                  }
+                                >
+                                  {bed.status.charAt(0).toUpperCase() +
+                                    bed.status.slice(1)}
+                                </Badge>
+                              </td>
+                              <td className="p-3">
+                                {bed.currentPatientName ? (
+                                  <span className="text-blue-600">
+                                    {bed.currentPatientName} (
+                                    {bed.currentPatientId})
+                                  </span>
+                                ) : (
+                                  <span className="text-gray-400">-</span>
+                                )}
+                              </td>
+                              <td className="p-3">{bed.lastSanitized}</td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
