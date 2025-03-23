@@ -204,12 +204,20 @@ const DoctorManagement = ({ className = "" }: DoctorManagementProps) => {
           <h1 className="text-3xl font-bold tracking-tight">
             Doctor Management
           </h1>
-          <Button asChild>
-            <Link to="/doctors/scheduling">
-              <Calendar className="mr-2 h-4 w-4" />
-              Doctor Scheduling
-            </Link>
-          </Button>
+          <div className="flex gap-2">
+            <Button asChild>
+              <Link to="/doctors/scheduling">
+                <Calendar className="mr-2 h-4 w-4" />
+                Doctor Scheduling
+              </Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link to="/doctors/appointments">
+                <CalendarClock className="mr-2 h-4 w-4" />
+                Doctor Appointments
+              </Link>
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

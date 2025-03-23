@@ -46,6 +46,7 @@ import OPDQueue from "./components/patients/opd/OPDQueue";
 import OPDAppointments from "./components/patients/opd/OPDAppointments";
 import DoctorManagement from "./components/doctors/DoctorManagement";
 import DoctorScheduling from "./components/doctors/DoctorScheduling";
+import DoctorAppointments from "./components/doctors/DoctorAppointments";
 
 // Import OPD definition components
 import DiseasesForm from "./components/opd/definitions/DiseasesForm";
@@ -249,13 +250,21 @@ function App() {
               <Route
                 path="packages"
                 element={
-                  <div className="p-6">Laboratory Packages coming soon</div>
+                  <Suspense fallback={<div>Loading...</div>}>
+                    {React.createElement(
+                      lazy(() => import("./pages/laboratory/packages")),
+                    )}
+                  </Suspense>
                 }
               />
               <Route
                 path="machines"
                 element={
-                  <div className="p-6">Laboratory Machines coming soon</div>
+                  <Suspense fallback={<div>Loading...</div>}>
+                    {React.createElement(
+                      lazy(() => import("./pages/laboratory/machines")),
+                    )}
+                  </Suspense>
                 }
               />
               <Route
@@ -290,6 +299,14 @@ function App() {
             <Route
               path="/doctors/scheduling/:doctorId"
               element={<DoctorScheduling />}
+            />
+            <Route
+              path="/doctors/appointments"
+              element={<DoctorAppointments />}
+            />
+            <Route
+              path="/doctors/appointments/:doctorId"
+              element={<DoctorAppointments />}
             />
 
             {/* Catch-all route */}

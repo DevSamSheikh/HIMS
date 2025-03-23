@@ -144,6 +144,11 @@ const NavItem = ({
       Search: <Search size={16} />,
       Records: <ClipboardList size={16} />,
 
+      // Doctor Management
+      Management: <UserCog size={16} />,
+      Scheduling: <CalendarClock size={16} />,
+      Appointments: <Calendar size={16} />,
+
       // OPD
       Appointments: <CalendarClock size={16} />,
       Consultations: <StethoscopeIcon size={16} />,
@@ -403,6 +408,7 @@ const Sidebar = ({
       { prefix: "/records", id: "records" },
       { prefix: "/security", id: "security" },
       { prefix: "/patients", id: "patients" },
+      { prefix: "/doctors", id: "doctors" },
       { prefix: "/opd", id: "opd" },
       { prefix: "/ipd", id: "ipd" },
       { prefix: "/pharmacy", id: "pharmacy" },
@@ -499,6 +505,20 @@ const Sidebar = ({
       icon: <Users size={20} />,
       subItems: [
         { id: "management", label: "Management", href: "/patients/management" },
+      ],
+    },
+    {
+      id: "doctors",
+      label: "Doctor Management",
+      icon: <Stethoscope size={20} />,
+      subItems: [
+        { id: "management", label: "Management", href: "/doctors" },
+        { id: "scheduling", label: "Scheduling", href: "/doctors/scheduling" },
+        {
+          id: "appointments",
+          label: "Appointments",
+          href: "/doctors/appointments",
+        },
       ],
     },
     {
