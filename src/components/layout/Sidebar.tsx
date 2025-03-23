@@ -67,6 +67,7 @@ import {
   Edit,
   Sliders,
   DoorClosed,
+  Microscope,
 } from "lucide-react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 
@@ -173,9 +174,15 @@ const NavItem = ({
       Sales: <ShoppingCart size={16} />,
 
       // Laboratory
+      "Test Catalog": <FlaskConical size={16} />,
+      "Sample Management": <TestTube size={16} />,
+      "Results Entry": <TestTube size={16} />,
       Tests: <FlaskConical size={16} />,
       Results: <TestTube size={16} />,
       Samples: <Beaker size={16} />,
+      Packages: <Package size={16} />,
+      Machines: <Microscope size={16} />,
+      Settings: <Settings size={16} />,
 
       // Billing
       Invoices: <CreditCardIcon size={16} />,
@@ -377,6 +384,7 @@ const Sidebar = ({
       { path: "/opd-dashboard", id: "opd-dashboard" },
       { path: "/ipd-dashboard", id: "ipd-dashboard" },
       { path: "/lab-dashboard", id: "lab-dashboard" },
+      { path: "/laboratory", id: "laboratory" },
       { path: "/modules", id: "modules" },
       { path: "/settings", id: "settings" },
       { path: "/help", id: "help" },
@@ -398,6 +406,7 @@ const Sidebar = ({
       { prefix: "/ipd", id: "ipd" },
       { prefix: "/pharmacy", id: "pharmacy" },
       { prefix: "/lab", id: "lab" },
+      { prefix: "/laboratory", id: "laboratory" },
       { prefix: "/billing", id: "billing" },
     ];
 
@@ -460,6 +469,70 @@ const Sidebar = ({
       href: "/lab-dashboard",
     },
     {
+      id: "laboratory",
+      label: "Laboratory Management",
+      icon: <TestTube size={20} />,
+      subItems: [
+        { id: "dashboard", label: "Dashboard", href: "/laboratory" },
+        { id: "tests", label: "Test Catalog", href: "/laboratory/tests" },
+        {
+          id: "samples",
+          label: "Sample Management",
+          href: "/laboratory/samples",
+        },
+        { id: "results", label: "Results Entry", href: "/laboratory/results" },
+        { id: "reports", label: "Reports", href: "/laboratory/reports" },
+        { id: "packages", label: "Packages", href: "/laboratory/packages" },
+        { id: "machines", label: "Machines", href: "/laboratory/machines" },
+        { id: "settings", label: "Settings", href: "/laboratory/settings" },
+      ],
+    },
+    {
+      id: "patients",
+      label: "Patient Management",
+      icon: <Users size={20} />,
+      subItems: [
+        { id: "management", label: "Management", href: "/patients/management" },
+      ],
+    },
+    {
+      id: "opd",
+      label: "OPD",
+      icon: <Stethoscope size={20} />,
+      subItems: [
+        { id: "diseases", label: "Diseases", href: "/opd/diseases" },
+        { id: "symptoms", label: "Symptoms", href: "/opd/symptoms" },
+        { id: "tests", label: "Tests", href: "/opd/tests" },
+        { id: "dosage", label: "Dosage", href: "/opd/dosage" },
+        { id: "days", label: "Days", href: "/opd/days" },
+        {
+          id: "pending-patients",
+          label: "Pending Patients",
+          href: "/opd/pending-patients",
+        },
+        { id: "checkup", label: "OPD Checkup", href: "/opd/checkup" },
+        { id: "billing", label: "OPD Billing", href: "/opd/billing" },
+      ],
+    },
+    {
+      id: "ipd",
+      label: "IPD",
+      icon: <BedDouble size={20} />,
+      subItems: [
+        { id: "dashboard", label: "Dashboard", href: "/ipd" },
+        { id: "wards", label: "Wards", href: "/ipd/wards" },
+        { id: "rooms", label: "Rooms", href: "/ipd/rooms" },
+        { id: "beds", label: "Beds", href: "/ipd/beds" },
+        { id: "services", label: "Services", href: "/ipd/services" },
+        {
+          id: "treatments",
+          label: "Patient Treatments",
+          href: "/ipd/treatments",
+        },
+        { id: "billing", label: "Billing", href: "/ipd/billing" },
+      ],
+    },
+    {
       id: "records",
       label: "Records & Definitions",
       icon: <Database size={20} />,
@@ -515,92 +588,17 @@ const Sidebar = ({
       ],
     },
     {
-      id: "patients",
-      label: "Patient Management",
-      icon: <Users size={20} />,
+      id: "doctors",
+      label: "Doctor Management",
+      icon: <UserCog size={20} />,
       subItems: [
-        { id: "management", label: "Management", href: "/patients/management" },
-      ],
-    },
-    {
-      id: "opd",
-      label: "OPD",
-      icon: <Stethoscope size={20} />,
-      subItems: [
-        { id: "diseases", label: "Diseases", href: "/opd/diseases" },
-        { id: "symptoms", label: "Symptoms", href: "/opd/symptoms" },
-        { id: "tests", label: "Tests", href: "/opd/tests" },
-        { id: "dosage", label: "Dosage", href: "/opd/dosage" },
-        { id: "days", label: "Days", href: "/opd/days" },
+        { id: "doctor-list", label: "Doctors List", href: "/doctors" },
         {
-          id: "pending-patients",
-          label: "Pending Patients",
-          href: "/opd/pending-patients",
+          id: "doctor-scheduling",
+          label: "Doctor Scheduling",
+          href: "/doctors/scheduling",
         },
-        { id: "checkup", label: "OPD Checkup", href: "/opd/checkup" },
-        { id: "billing", label: "OPD Billing", href: "/opd/billing" },
       ],
-    },
-    {
-      id: "ipd",
-      label: "IPD",
-      icon: <BedDouble size={20} />,
-      subItems: [
-        { id: "dashboard", label: "Dashboard", href: "/ipd" },
-        { id: "wards", label: "Wards", href: "/ipd/wards" },
-        { id: "rooms", label: "Rooms", href: "/ipd/rooms" },
-        { id: "beds", label: "Beds", href: "/ipd/beds" },
-        { id: "services", label: "Services", href: "/ipd/services" },
-        {
-          id: "treatments",
-          label: "Patient Treatments",
-          href: "/ipd/treatments",
-        },
-        { id: "billing", label: "Billing", href: "/ipd/billing" },
-      ],
-    },
-    {
-      id: "pharmacy",
-      label: "Pharmacy",
-      icon: <Pill size={20} />,
-      subItems: [
-        { id: "items", label: "Items", href: "/pharmacy/items" },
-        { id: "customers", label: "Customers", href: "/pharmacy/customers" },
-        { id: "inventory", label: "Inventory", href: "/pharmacy/inventory" },
-        { id: "purchase", label: "Purchase", href: "/pharmacy/purchase" },
-        {
-          id: "prescriptions",
-          label: "Prescriptions",
-          href: "/pharmacy/prescriptions",
-        },
-        { id: "sales", label: "Sales", href: "/pharmacy/sales" },
-      ],
-    },
-    {
-      id: "lab",
-      label: "Laboratory",
-      icon: <Beaker size={20} />,
-      subItems: [
-        { id: "tests", label: "Tests", href: "/lab/tests" },
-        { id: "results", label: "Results", href: "/lab/results" },
-        { id: "samples", label: "Samples", href: "/lab/samples" },
-      ],
-    },
-    {
-      id: "billing",
-      label: "Billing",
-      icon: <CreditCard size={20} />,
-      subItems: [
-        { id: "invoices", label: "Invoices", href: "/billing/invoices" },
-        { id: "payments", label: "Payments", href: "/billing/payments" },
-        { id: "reports", label: "Reports", href: "/billing/reports" },
-      ],
-    },
-    {
-      id: "modules",
-      label: "Modules & Pricing",
-      icon: <Package size={20} />,
-      href: "/modules",
     },
   ];
 

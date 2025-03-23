@@ -10,6 +10,8 @@ import {
   FileText,
   ClipboardList,
   Receipt,
+  FileCheck,
+  Baby,
 } from "lucide-react";
 
 const IPDDashboard = () => {
@@ -61,6 +63,22 @@ const IPDDashboard = () => {
       link: "/ipd/billing",
       color: "bg-indigo-50 dark:bg-indigo-900/20",
       textColor: "text-indigo-600 dark:text-indigo-400",
+    },
+    {
+      title: "Death Certificate",
+      description: "Generate and manage death certificates",
+      icon: <FileCheck className="h-8 w-8 mb-2" />,
+      link: "/ipd/death-certificate",
+      color: "bg-slate-50 dark:bg-slate-900/20",
+      textColor: "text-slate-600 dark:text-slate-400",
+    },
+    {
+      title: "Birth Certificate",
+      description: "Generate and manage birth certificates",
+      icon: <Baby className="h-8 w-8 mb-2" />,
+      link: "/ipd/birth-certificate",
+      color: "bg-pink-50 dark:bg-pink-900/20",
+      textColor: "text-pink-600 dark:text-pink-400",
     },
   ];
 

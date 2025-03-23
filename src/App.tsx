@@ -44,6 +44,8 @@ import OPDManagement from "./components/patients/opd/OPDManagement";
 import OPDVisitList from "./components/patients/opd/OPDVisitList";
 import OPDQueue from "./components/patients/opd/OPDQueue";
 import OPDAppointments from "./components/patients/opd/OPDAppointments";
+import DoctorManagement from "./components/doctors/DoctorManagement";
+import DoctorScheduling from "./components/doctors/DoctorScheduling";
 
 // Import OPD definition components
 import DiseasesForm from "./components/opd/definitions/DiseasesForm";
@@ -62,6 +64,15 @@ import BedForm from "./components/ipd/definitions/BedForm";
 import ServiceForm from "./components/ipd/definitions/ServiceForm";
 import PatientTreatment from "./components/ipd/PatientTreatment";
 import IPDBilling from "./components/ipd/IPDBilling";
+import DeathCertificate from "./components/ipd/DeathCertificate";
+import BirthCertificate from "./components/ipd/BirthCertificate";
+
+// Import Laboratory components
+import LaboratoryDashboard from "./components/laboratory/LaboratoryDashboard";
+import TestCatalog from "./components/laboratory/TestCatalog";
+import SampleManagement from "./components/laboratory/SampleManagement";
+import ResultsEntry from "./components/laboratory/ResultsEntry";
+import CategoriesPage from "./pages/laboratory/categories";
 
 // Import Pharmacy Prescriptions page
 import PrescriptionsPage from "./pages/pharmacy/prescriptions";
@@ -216,6 +227,41 @@ function App() {
               <Route path="services" element={<ServiceForm />} />
               <Route path="treatments" element={<PatientTreatment />} />
               <Route path="billing" element={<IPDBilling />} />
+              <Route path="death-certificate" element={<DeathCertificate />} />
+              <Route path="birth-certificate" element={<BirthCertificate />} />
+            </Route>
+
+            {/* Laboratory Management routes */}
+            <Route path="/laboratory">
+              <Route index element={<LaboratoryDashboard />} />
+              <Route path="tests" element={<TestCatalog />} />
+              <Route path="categories" element={<CategoriesPage />} />
+              <Route path="samples" element={<SampleManagement />} />
+              <Route path="results" element={<ResultsEntry />} />
+              <Route
+                path="reports"
+                element={
+                  <div className="p-6">Laboratory Reports coming soon</div>
+                }
+              />
+              <Route
+                path="packages"
+                element={
+                  <div className="p-6">Laboratory Packages coming soon</div>
+                }
+              />
+              <Route
+                path="machines"
+                element={
+                  <div className="p-6">Laboratory Machines coming soon</div>
+                }
+              />
+              <Route
+                path="settings"
+                element={
+                  <div className="p-6">Laboratory Settings coming soon</div>
+                }
+              />
             </Route>
 
             {/* Patient Management routes */}
@@ -235,6 +281,14 @@ function App() {
                 />
               </Route>
             </Route>
+
+            {/* Doctor Management routes */}
+            <Route path="/doctors" element={<DoctorManagement />} />
+            <Route path="/doctors/scheduling" element={<DoctorScheduling />} />
+            <Route
+              path="/doctors/scheduling/:doctorId"
+              element={<DoctorScheduling />}
+            />
 
             {/* Catch-all route */}
             <Route path="*" element={<Navigate to="/" replace />} />

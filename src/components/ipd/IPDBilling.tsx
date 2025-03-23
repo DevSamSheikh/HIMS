@@ -256,6 +256,7 @@ const IPDBilling = () => {
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
   const [isNewBillDialogOpen, setIsNewBillDialogOpen] = useState(false);
   const [isAddServiceDialogOpen, setIsAddServiceDialogOpen] = useState(false);
+  const [isAddTestDialogOpen, setIsAddTestDialogOpen] = useState(false);
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
   const [paymentAmount, setPaymentAmount] = useState<number>(0);
   const [patientSearchQuery, setPatientSearchQuery] = useState("");
@@ -522,14 +523,111 @@ const IPDBilling = () => {
     },
   ]);
 
+  // Mock tests data
+  const [availableTests, setAvailableTests] = useState<Service[]>([
+    {
+      id: "test-001",
+      category: "Laboratory",
+      name: "Complete Blood Count (CBC)",
+      rate: 500,
+      description: "Basic blood test to check overall health",
+    },
+    {
+      id: "test-002",
+      category: "Laboratory",
+      name: "Blood Glucose",
+      rate: 300,
+      description: "Test to measure blood sugar levels",
+    },
+    {
+      id: "test-003",
+      category: "Laboratory",
+      name: "Lipid Profile",
+      rate: 800,
+      description: "Test to check cholesterol and triglycerides",
+    },
+    {
+      id: "test-004",
+      category: "Laboratory",
+      name: "Liver Function Test",
+      rate: 1200,
+      description: "Test to check liver health and function",
+    },
+    {
+      id: "test-005",
+      category: "Laboratory",
+      name: "Kidney Function Test",
+      rate: 1200,
+      description: "Test to check kidney health and function",
+    },
+    {
+      id: "test-006",
+      category: "Radiology",
+      name: "Chest X-Ray",
+      rate: 1000,
+      description: "Imaging test for chest and lungs",
+    },
+    {
+      id: "test-007",
+      category: "Radiology",
+      name: "Ultrasound - Abdomen",
+      rate: 1500,
+      description: "Imaging test for abdominal organs",
+    },
+    {
+      id: "test-008",
+      category: "Radiology",
+      name: "CT Scan - Head",
+      rate: 5000,
+      description: "Detailed imaging of the head",
+    },
+    {
+      id: "test-009",
+      category: "Radiology",
+      name: "MRI - Spine",
+      rate: 8000,
+      description: "Detailed imaging of the spine",
+    },
+    {
+      id: "test-010",
+      category: "Cardiology",
+      name: "ECG",
+      rate: 600,
+      description: "Test to check heart's electrical activity",
+    },
+    {
+      id: "test-011",
+      category: "Cardiology",
+      name: "Echocardiogram",
+      rate: 2500,
+      description: "Ultrasound imaging of the heart",
+    },
+    {
+      id: "test-012",
+      category: "Neurology",
+      name: "EEG",
+      rate: 2000,
+      description: "Test to measure brain's electrical activity",
+    },
+  ]);
+
   // Filtered services by category
   const serviceCategories = [
     ...new Set(availableServices.map((service) => service.category)),
   ];
 
+  // Filtered tests by category
+  const testCategories = [
+    ...new Set(availableTests.map((test) => test.category)),
+  ];
+
   // Selected service for adding to bill
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [serviceQuantity, setServiceQuantity] = useState<number>(1);
+
+  // Selected test for adding to bill
+  const [selectedTest, setSelectedTest] = useState<Service | null>(null);
+  const [testQuantity, setTestQuantity] = useState<number>(1);
 
   const filteredBills = bills.filter(
     (bill) =>
@@ -1471,15 +1569,26 @@ const IPDBilling = () => {
             <div className="pt-4 border-t">
               <div className="flex justify-between items-center mb-2">
                 <h3 className="font-medium">Services</h3>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsAddServiceDialogOpen(true)}
-                >
-                  <PlusCircle className="mr-2 h-4 w-4" />
-                  Add Service
-                </Button>
+                <div className="flex space-x-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsAddServiceDialogOpen(true)}
+                  >
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Add Service
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsAddTestDialogOpen(true)}
+                  >
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Add Test
+                  </Button>
+                </div>
               </div>
 
               {newBillServices.length > 0 ? (
@@ -1729,6 +1838,136 @@ const IPDBilling = () => {
                     setIsAddServiceDialogOpen(false);
                     setSelectedService(null);
                     setServiceQuantity(1);
+                  }
+                }}
+              >
+                Add to Bill
+              </Button>
+            </DialogFooter>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Test Dialog */}
+      <Dialog open={isAddTestDialogOpen} onOpenChange={setIsAddTestDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Add Test</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="testCategory">Test Category</Label>
+              <select
+                id="testCategory"
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                onChange={(e) => {
+                  const category = e.target.value;
+                  if (category) {
+                    const firstTestInCategory = availableTests.find(
+                      (t) => t.category === category,
+                    );
+                    if (firstTestInCategory) {
+                      setSelectedTest(firstTestInCategory);
+                    }
+                  } else {
+                    setSelectedTest(null);
+                  }
+                }}
+              >
+                <option value="">Select Category</option>
+                {testCategories.map((category) => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {selectedTest && (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="testName">Test</Label>
+                  <select
+                    id="testName"
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    value={selectedTest.id}
+                    onChange={(e) => {
+                      const testId = e.target.value;
+                      const test = availableTests.find((t) => t.id === testId);
+                      if (test) {
+                        setSelectedTest(test);
+                      }
+                    }}
+                  >
+                    {availableTests
+                      .filter((test) => test.category === selectedTest.category)
+                      .map((test) => (
+                        <option key={test.id} value={test.id}>
+                          {test.name}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="testRate">Rate (₹)</Label>
+                  <Input
+                    id="testRate"
+                    type="number"
+                    value={selectedTest.rate}
+                    readOnly
+                    className="bg-muted"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="testQuantity">Quantity</Label>
+                  <Input
+                    id="testQuantity"
+                    type="number"
+                    min="1"
+                    value={testQuantity}
+                    onChange={(e) => setTestQuantity(Number(e.target.value))}
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Total Amount</Label>
+                  <div className="p-2 bg-muted rounded-md font-medium">
+                    ₹{(selectedTest.rate * testQuantity).toLocaleString()}
+                  </div>
+                </div>
+              </>
+            )}
+
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsAddTestDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                disabled={!selectedTest}
+                onClick={() => {
+                  if (selectedTest) {
+                    const newTest: BillItem = {
+                      id: `item-${Math.floor(Math.random() * 10000)}`,
+                      billId: "", // Will be set when bill is generated
+                      category: "Tests",
+                      description: `${selectedTest.category} - ${selectedTest.name}`,
+                      quantity: testQuantity,
+                      rate: selectedTest.rate,
+                      amount: selectedTest.rate * testQuantity,
+                    };
+
+                    setNewBillServices([...newBillServices, newTest]);
+                    setIsAddTestDialogOpen(false);
+                    setSelectedTest(null);
+                    setTestQuantity(1);
                   }
                 }}
               >

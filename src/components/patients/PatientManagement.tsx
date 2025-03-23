@@ -12,6 +12,7 @@ import {
   ClipboardList,
   BarChart,
 } from "lucide-react";
+import GeneratePatientCardButton from "./GeneratePatientCardButton";
 import PatientList from "./PatientList";
 import PatientRegistration from "./PatientRegistration";
 import PatientReports from "./PatientReports";

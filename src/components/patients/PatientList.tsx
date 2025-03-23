@@ -69,6 +69,7 @@ import {
 import PatientRegistration from "./PatientRegistration";
 import NewOPDVisit from "./opd/NewOPDVisit";
 import { toast } from "@/components/ui/use-toast";
+import GeneratePatientCardButton from "./GeneratePatientCardButton";
 
 interface PatientListProps {
   searchQuery: string;
@@ -1045,6 +1046,12 @@ const PatientList: React.FC<PatientListProps> = ({ searchQuery }) => {
                           <FileText className="mr-2 h-4 w-4" />
                           View Medical History
                         </DropdownMenuItem>
+                        <GeneratePatientCardButton
+                          patient={patient}
+                          variant="ghost"
+                          size="sm"
+                          className="w-full justify-start px-2"
+                        />
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                           className="text-destructive"

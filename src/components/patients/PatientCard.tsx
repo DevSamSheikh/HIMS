@@ -108,7 +108,7 @@ const PatientCard: React.FC<PatientCardProps> = ({ patient, onClose }) => {
             {/* Front of card */}
             <div
               ref={frontCardRef}
-              className="absolute w-full h-full backface-hidden bg-gradient-to-r from-blue-600 to-blue-800 rounded-xl p-6 text-white shadow-xl"
+              className="absolute w-full h-full backface-hidden bg-gradient-to-r from-blue-600 to-blue-800 rounded-xl p-6 text-white shadow-xl overflow-hidden"
             >
               <div className="flex justify-between items-start">
                 <div>
@@ -129,9 +129,9 @@ const PatientCard: React.FC<PatientCardProps> = ({ patient, onClose }) => {
                 </div>
               </div>
 
-              <div className="mt-4 flex gap-4">
+              <div className="mt-3 flex gap-3">
                 <div>
-                  <Avatar className="h-20 w-20 border-2 border-white/50">
+                  <Avatar className="h-16 w-16 border-2 border-white/50">
                     {patient.profileImage ? (
                       <AvatarImage
                         src={patient.profileImage}
@@ -165,13 +165,18 @@ const PatientCard: React.FC<PatientCardProps> = ({ patient, onClose }) => {
                     )}
                     <div className="text-xs col-span-2">
                       <span className="opacity-80">Address:</span>{" "}
-                      <span className="font-medium">{patient.address}</span>
+                      <span
+                        className="font-medium whitespace-nowrap overflow-hidden text-ellipsis block"
+                        style={{ maxWidth: "180px" }}
+                      >
+                        {patient.address}
+                      </span>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="absolute bottom-4 right-6 text-xs opacity-80">
+              <div className="absolute bottom-3 right-6 text-xs opacity-80">
                 <p>123 Medical Center Road, City</p>
                 <p>Phone: (123) 456-7890</p>
               </div>
@@ -182,7 +187,7 @@ const PatientCard: React.FC<PatientCardProps> = ({ patient, onClose }) => {
               ref={backCardRef}
               className="absolute w-full h-full backface-hidden rotate-y-180 bg-white rounded-xl p-6 shadow-xl flex flex-col items-center justify-between"
             >
-              <div className="text-center mb-2">
+              <div className="text-center mb-1">
                 <h3 className="text-lg font-bold text-blue-800">
                   Healthcare Hospital
                 </h3>
@@ -191,18 +196,18 @@ const PatientCard: React.FC<PatientCardProps> = ({ patient, onClose }) => {
                 </p>
               </div>
 
-              <div className="flex-1 flex items-center justify-center">
+              <div className="flex items-center justify-center mt-1 mb-0">
                 <div className="p-2 bg-white rounded-lg">
                   <QRCodeSVG
                     value={patientData}
-                    size={120}
+                    size={90}
                     level="H"
                     includeMargin={true}
                   />
                 </div>
               </div>
 
-              <div className="w-full text-center text-xs text-gray-600">
+              <div className="w-full text-center text-xs text-gray-600 mt-1">
                 <p className="mb-1">
                   This card is the property of Healthcare Hospital
                 </p>
