@@ -24,28 +24,31 @@ const LaboratoryLayout = () => {
         value={
           currentPath.includes("/laboratory/tests")
             ? "tests"
-            : currentPath.includes("/laboratory/samples")
-              ? "samples"
-              : currentPath.includes("/laboratory/results")
-                ? "results"
-                : currentPath.includes("/laboratory/reports")
-                  ? "reports"
-                  : currentPath.includes("/laboratory/packages")
-                    ? "packages"
-                    : currentPath.includes("/laboratory/machines")
-                      ? "machines"
-                      : currentPath.includes("/laboratory/settings")
-                        ? "settings"
-                        : "dashboard"
+            : currentPath.includes("/laboratory/orders")
+              ? "orders"
+              : currentPath.includes("/laboratory/samples")
+                ? "samples"
+                : currentPath.includes("/laboratory/results")
+                  ? "results"
+                  : currentPath.includes("/laboratory/reports")
+                    ? "reports"
+                    : currentPath.includes("/laboratory/packages")
+                      ? "packages"
+                      : currentPath.includes("/laboratory/machines")
+                        ? "machines"
+                        : currentPath.includes("/laboratory/settings")
+                          ? "settings"
+                          : "dashboard"
         }
         className="w-full"
         onValueChange={(value) => {
           navigate(`/laboratory/${value === "dashboard" ? "" : value}`);
         }}
       >
-        <TabsList className="grid grid-cols-8 w-full">
+        <TabsList className="grid grid-cols-9 w-full">
           <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
           <TabsTrigger value="tests">Test Catalog</TabsTrigger>
+          <TabsTrigger value="orders">Order Management</TabsTrigger>
           <TabsTrigger value="samples">Sample Management</TabsTrigger>
           <TabsTrigger value="results">Results Entry</TabsTrigger>
           <TabsTrigger value="reports">Reports</TabsTrigger>

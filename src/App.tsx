@@ -71,6 +71,7 @@ import BirthCertificate from "./components/ipd/BirthCertificate";
 import LaboratoryDashboard from "./components/laboratory/LaboratoryDashboard";
 import TestCatalog from "./components/laboratory/TestCatalog";
 import SampleManagement from "./components/laboratory/SampleManagement";
+import OrderManagement from "./components/laboratory/OrderManagement";
 import ResultsEntry from "./components/laboratory/ResultsEntry";
 import CategoriesPage from "./pages/laboratory/categories";
 
@@ -236,6 +237,7 @@ function App() {
               <Route index element={<LaboratoryDashboard />} />
               <Route path="tests" element={<TestCatalog />} />
               <Route path="categories" element={<CategoriesPage />} />
+              <Route path="orders" element={<OrderManagement />} />
               <Route path="samples" element={<SampleManagement />} />
               <Route path="results" element={<ResultsEntry />} />
               <Route

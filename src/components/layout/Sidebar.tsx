@@ -150,7 +150,7 @@ const NavItem = ({
       Billing: <Receipt size={16} />,
       Diseases: <AlertCircle size={16} />,
       Symptoms: <Activity size={16} />,
-      Tests: <TestTube size={16} />,
+      Tests: <FlaskConical size={16} />,
       Dosage: <Pill size={16} />,
       Days: <Clock size={16} />,
       "Pending Patients": <ClipboardList size={16} />,
@@ -175,6 +175,7 @@ const NavItem = ({
 
       // Laboratory
       "Test Catalog": <FlaskConical size={16} />,
+      "Order Management": <ClipboardList size={16} />,
       "Sample Management": <TestTube size={16} />,
       "Results Entry": <TestTube size={16} />,
       Tests: <FlaskConical size={16} />,
@@ -476,6 +477,11 @@ const Sidebar = ({
         { id: "dashboard", label: "Dashboard", href: "/laboratory" },
         { id: "tests", label: "Test Catalog", href: "/laboratory/tests" },
         {
+          id: "orders",
+          label: "Order Management",
+          href: "/laboratory/orders",
+        },
+        {
           id: "samples",
           label: "Sample Management",
           href: "/laboratory/samples",
@@ -530,6 +536,33 @@ const Sidebar = ({
           href: "/ipd/treatments",
         },
         { id: "billing", label: "Billing", href: "/ipd/billing" },
+        {
+          id: "death-certificate",
+          label: "Death Certificate",
+          href: "/ipd/death-certificate",
+        },
+        {
+          id: "birth-certificate",
+          label: "Birth Certificate",
+          href: "/ipd/birth-certificate",
+        },
+      ],
+    },
+    {
+      id: "pharmacy",
+      label: "Pharmacy",
+      icon: <Pill size={20} />,
+      subItems: [
+        { id: "items", label: "Items", href: "/pharmacy/items" },
+        { id: "customers", label: "Customers", href: "/pharmacy/customers" },
+        { id: "inventory", label: "Inventory", href: "/pharmacy/inventory" },
+        {
+          id: "prescriptions",
+          label: "Prescriptions",
+          href: "/pharmacy/prescriptions",
+        },
+        { id: "purchase", label: "Purchase", href: "/pharmacy/purchase" },
+        { id: "sales", label: "Sales", href: "/pharmacy/sales" },
       ],
     },
     {
@@ -543,21 +576,13 @@ const Sidebar = ({
           label: "Departments",
           href: "/records/departments",
         },
-        {
-          id: "companies",
-          label: "Companies",
-          href: "/records/companies",
-        },
+        { id: "companies", label: "Companies", href: "/records/companies" },
         {
           id: "warehouses",
           label: "Warehouses",
           href: "/records/warehouses",
         },
-        {
-          id: "banks",
-          label: "Banks",
-          href: "/records/banks",
-        },
+        { id: "banks", label: "Banks", href: "/records/banks" },
         {
           id: "uoms",
           label: "Units of Measurement",
@@ -588,21 +613,11 @@ const Sidebar = ({
       ],
     },
     {
-      id: "doctors",
-      label: "Doctor Management",
-      icon: <UserCog size={20} />,
-      subItems: [
-        { id: "doctor-list", label: "Doctors List", href: "/doctors" },
-        {
-          id: "doctor-scheduling",
-          label: "Doctor Scheduling",
-          href: "/doctors/scheduling",
-        },
-      ],
+      id: "modules",
+      label: "Modules",
+      icon: <Package size={20} />,
+      href: "/module-selection",
     },
-  ];
-
-  const utilityItems = [
     {
       id: "settings",
       label: "Settings",
@@ -611,7 +626,7 @@ const Sidebar = ({
     },
     {
       id: "help",
-      label: "Help & Support",
+      label: "Help",
       icon: <HelpCircle size={20} />,
       href: "/help",
     },
@@ -621,45 +636,38 @@ const Sidebar = ({
       icon: <FileText size={20} />,
       href: "/docs",
     },
+    {
+      id: "logout",
+      label: "Logout",
+      icon: <LogOut size={20} />,
+      href: "/login",
+    },
   ];
 
-  // Mobile sidebar using Sheet component
-  if (isMobile) {
-    return (
-      <>
-        {!isMobileOpen && (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="fixed top-3 left-3 z-50 lg:hidden"
-            onClick={toggleMobileSidebar}
-          >
-            <Menu size={24} />
-          </Button>
-        )}
+  return (
+    <>
+      {/* Mobile sidebar toggle button */}
+      {isMobile && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="md:hidden fixed top-4 left-4 z-50"
+          onClick={toggleMobileSidebar}
+        >
+          {isMobileOpen ? <X size={20} /> : <Menu size={20} />}
+        </Button>
+      )}
 
+      {/* Mobile sidebar */}
+      {isMobile && (
         <Sheet open={isMobileOpen} onOpenChange={setIsMobileOpen}>
           <SheetContent side="left" className="p-0 w-[280px]">
-            <div className="flex h-full flex-col bg-background">
-              <div className="flex h-14 items-center px-4 justify-between border-b">
-                <div className="flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
-                    H
-                  </div>
-                  <span className="font-semibold text-lg">HIMS</span>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={toggleMobileSidebar}
-                  className="lg:hidden"
-                >
-                  <X size={20} />
-                </Button>
+            <div className="flex flex-col h-full">
+              <div className="p-4 border-b">
+                <h2 className="text-lg font-semibold">Menu</h2>
               </div>
-
-              <ScrollArea className="flex-1 pt-4 overflow-x-hidden">
-                <div className="flex flex-col gap-1 px-2">
+              <ScrollArea className="flex-1">
+                <div className="p-2 space-y-1">
                   {navItems.map((item) => (
                     <NavItem
                       key={item.id}
@@ -667,146 +675,68 @@ const Sidebar = ({
                       label={item.label}
                       href={item.href}
                       active={activeItem === item.id}
-                      collapsed={false}
-                      onClick={() => handleNavClick(item.id)}
                       subItems={item.subItems}
-                    />
-                  ))}
-                </div>
-
-                <Separator className="my-4" />
-
-                <div className="flex flex-col gap-1 px-2">
-                  {utilityItems.map((item) => (
-                    <NavItem
-                      key={item.id}
-                      icon={item.icon}
-                      label={item.label}
-                      href={item.href}
-                      active={activeItem === item.id}
-                      collapsed={false}
-                      onClick={() => handleNavClick(item.id)}
+                      onClick={() => {
+                        handleNavClick(item.id);
+                        if (!item.subItems) {
+                          setIsMobileOpen(false);
+                        }
+                      }}
                     />
                   ))}
                 </div>
               </ScrollArea>
-
-              <div className="p-2 mt-auto border-t">
-                <NavItem
-                  icon={<LogOut size={20} />}
-                  label="Logout"
-                  href="/logout"
-                  collapsed={false}
-                />
-              </div>
             </div>
           </SheetContent>
         </Sheet>
-      </>
-    );
-  }
-
-  // Desktop sidebar
-  return (
-    <div
-      className={cn(
-        "flex h-full flex-col bg-background border-r transition-all duration-300",
-        isCollapsed ? "w-16" : "w-64",
-        className,
       )}
-    >
+
+      {/* Desktop sidebar */}
       <div
         className={cn(
-          "flex h-14 items-center border-b",
-          isCollapsed ? "justify-center" : "px-4 justify-between",
+          "hidden md:flex flex-col h-full border-r transition-all duration-300",
+          isCollapsed ? "w-[60px]" : "w-[280px]",
+          className,
         )}
       >
-        {isCollapsed ? (
-          <div
-            className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground cursor-pointer"
+        <div
+          className={cn(
+            "flex items-center justify-between p-4 border-b",
+            isCollapsed && "justify-center",
+          )}
+        >
+          {!isCollapsed && <h2 className="text-lg font-semibold">Menu</h2>}
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={handleToggleCollapse}
+            className="h-8 w-8"
           >
-            H
+            {isCollapsed ? (
+              <ChevronRightIcon size={18} />
+            ) : (
+              <ChevronLeft size={18} />
+            )}
+          </Button>
+        </div>
+        <ScrollArea className="flex-1">
+          <div className="p-2 space-y-1">
+            {navItems.map((item) => (
+              <NavItem
+                key={item.id}
+                icon={item.icon}
+                label={item.label}
+                href={item.href}
+                active={activeItem === item.id}
+                collapsed={isCollapsed}
+                subItems={item.subItems}
+                onClick={() => handleNavClick(item.id)}
+              />
+            ))}
           </div>
-        ) : (
-          <>
-            <div className="flex items-center gap-2">
-              <div
-                className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground cursor-pointer"
-                onClick={handleToggleCollapse}
-              >
-                H
-              </div>
-              <span className="font-semibold text-lg">HIMS</span>
-            </div>
-          </>
-        )}
-        {!isCollapsed && (
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleToggleCollapse}
-            className="ml-auto"
-            aria-label="Collapse sidebar"
-          >
-            <ChevronLeft size={18} />
-          </Button>
-        )}
-        {isCollapsed && (
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleToggleCollapse}
-            className="absolute -right-3 top-10 h-6 w-6 rounded-full border bg-background shadow-md hover:bg-accent hover:text-accent-foreground"
-            aria-label="Expand sidebar"
-          >
-            <ChevronRightIcon size={12} />
-          </Button>
-        )}
+        </ScrollArea>
       </div>
-
-      <ScrollArea className="flex-1 pt-4 overflow-x-hidden">
-        <div className={cn("flex flex-col gap-1", "px-2")}>
-          {navItems.map((item) => (
-            <NavItem
-              key={item.id}
-              icon={item.icon}
-              label={item.label}
-              href={item.href}
-              active={activeItem === item.id}
-              collapsed={isCollapsed}
-              onClick={() => handleNavClick(item.id)}
-              subItems={item.subItems}
-            />
-          ))}
-        </div>
-
-        <Separator className="my-4" />
-
-        <div className={cn("flex flex-col gap-1", "px-2")}>
-          {utilityItems.map((item) => (
-            <NavItem
-              key={item.id}
-              icon={item.icon}
-              label={item.label}
-              href={item.href}
-              active={activeItem === item.id}
-              collapsed={isCollapsed}
-              onClick={() => handleNavClick(item.id)}
-            />
-          ))}
-        </div>
-      </ScrollArea>
-
-      <div className={cn("p-2 mt-auto border-t")}>
-        <NavItem
-          icon={<LogOut size={20} />}
-          label="Logout"
-          href="/logout"
-          collapsed={isCollapsed}
-        />
-      </div>
-    </div>
+    </>
   );
 };
 
