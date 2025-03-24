@@ -314,10 +314,11 @@ const DoctorAppointments = ({ className = "" }: DoctorAppointmentsProps) => {
     },
   ];
 
-  // Generate calendar days for the current month view
+  // Generate calendar days for the current month view - optimized version
   const generateCalendarDays = (): CalendarDay[] => {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
+    const today = new Date();
 
     // First day of the month
     const firstDay = new Date(year, month, 1);
@@ -338,6 +339,22 @@ const DoctorAppointments = ({ className = "" }: DoctorAppointmentsProps) => {
 
     const calendarDays: CalendarDay[] = [];
 
+    // Create a map of appointments by date string for faster lookup
+    const appointmentsByDate = new Map<string, Appointment[]>();
+    appointments.forEach((apt) => {
+      const dateStr = apt.date;
+      if (!appointmentsByDate.has(dateStr)) {
+        appointmentsByDate.set(dateStr, []);
+      }
+      appointmentsByDate.get(dateStr)?.push(apt);
+    });
+
+    // Helper function to get appointments for a date
+    const getAppointmentsForDate = (date: Date): Appointment[] => {
+      const dateStr = date.toISOString().split("T")[0];
+      return appointmentsByDate.get(dateStr) || [];
+    };
+
     // Add days from previous month
     const prevMonth = new Date(year, month - 1, 0);
     const prevMonthLastDay = prevMonth.getDate();
@@ -347,10 +364,8 @@ const DoctorAppointments = ({ className = "" }: DoctorAppointmentsProps) => {
       calendarDays.push({
         date,
         isCurrentMonth: false,
-        isToday: isSameDay(date, new Date()),
-        appointments: appointments.filter((apt) =>
-          isSameDay(new Date(apt.date), date),
-        ),
+        isToday: isSameDay(date, today),
+        appointments: getAppointmentsForDate(date),
       });
     }
 
@@ -360,10 +375,8 @@ const DoctorAppointments = ({ className = "" }: DoctorAppointmentsProps) => {
       calendarDays.push({
         date,
         isCurrentMonth: true,
-        isToday: isSameDay(date, new Date()),
-        appointments: appointments.filter((apt) =>
-          isSameDay(new Date(apt.date), date),
-        ),
+        isToday: isSameDay(date, today),
+        appointments: getAppointmentsForDate(date),
       });
     }
 
@@ -373,10 +386,8 @@ const DoctorAppointments = ({ className = "" }: DoctorAppointmentsProps) => {
       calendarDays.push({
         date,
         isCurrentMonth: false,
-        isToday: isSameDay(date, new Date()),
-        appointments: appointments.filter((apt) =>
-          isSameDay(new Date(apt.date), date),
-        ),
+        isToday: isSameDay(date, today),
+        appointments: getAppointmentsForDate(date),
       });
     }
 
@@ -392,12 +403,29 @@ const DoctorAppointments = ({ className = "" }: DoctorAppointmentsProps) => {
     );
   };
 
-  // Generate week view days
+  // Generate week view days - optimized version
   const generateWeekDays = (): CalendarDay[] => {
     const weekDays: CalendarDay[] = [];
     const startOfWeek = new Date(currentDate);
     const day = currentDate.getDay();
     startOfWeek.setDate(currentDate.getDate() - day);
+    const today = new Date();
+
+    // Create a map of appointments by date string for faster lookup
+    const appointmentsByDate = new Map<string, Appointment[]>();
+    appointments.forEach((apt) => {
+      const dateStr = apt.date;
+      if (!appointmentsByDate.has(dateStr)) {
+        appointmentsByDate.set(dateStr, []);
+      }
+      appointmentsByDate.get(dateStr)?.push(apt);
+    });
+
+    // Helper function to get appointments for a date
+    const getAppointmentsForDate = (date: Date): Appointment[] => {
+      const dateStr = date.toISOString().split("T")[0];
+      return appointmentsByDate.get(dateStr) || [];
+    };
 
     for (let i = 0; i < 7; i++) {
       const date = new Date(startOfWeek);
@@ -405,23 +433,23 @@ const DoctorAppointments = ({ className = "" }: DoctorAppointmentsProps) => {
       weekDays.push({
         date,
         isCurrentMonth: date.getMonth() === currentDate.getMonth(),
-        isToday: isSameDay(date, new Date()),
-        appointments: appointments.filter((apt) =>
-          isSameDay(new Date(apt.date), date),
-        ),
+        isToday: isSameDay(date, today),
+        appointments: getAppointmentsForDate(date),
       });
     }
 
     return weekDays;
   };
 
-  // Get appointments for the selected date
+  // Get appointments for the selected date - optimized version
   const getDayAppointments = (): Appointment[] => {
     if (!selectedDate) return [];
 
-    return appointments.filter((apt) =>
-      isSameDay(new Date(apt.date), selectedDate),
-    );
+    // Convert selectedDate to string format for comparison
+    const selectedDateStr = selectedDate.toISOString().split("T")[0];
+
+    // Direct comparison of date strings is much faster than creating Date objects
+    return appointments.filter((apt) => apt.date === selectedDateStr);
   };
 
   // Filter appointments based on search query and filters
@@ -602,13 +630,21 @@ const DoctorAppointments = ({ className = "" }: DoctorAppointmentsProps) => {
     setIsAppointmentDetailsOpen(true);
   };
 
-  // Calendar days for the current view
-  const calendarDays =
-    viewMode === "month" ? generateCalendarDays() : generateWeekDays();
+  // Calendar days for the current view - memoized to prevent recalculation
+  const calendarDays = React.useMemo(
+    () => (viewMode === "month" ? generateCalendarDays() : generateWeekDays()),
+    [viewMode, currentDate, appointments],
+  );
 
-  // Appointments for the selected date (day view)
-  const dayAppointments = getDayAppointments();
-  const filteredDayAppointments = filterAppointments(dayAppointments);
+  // Appointments for the selected date (day view) - memoized
+  const dayAppointments = React.useMemo(
+    () => getDayAppointments(),
+    [selectedDate, appointments],
+  );
+  const filteredDayAppointments = React.useMemo(
+    () => filterAppointments(dayAppointments),
+    [dayAppointments, searchQuery, statusFilter, typeFilter],
+  );
 
   return (
     <div
@@ -812,28 +848,29 @@ const DoctorAppointments = ({ className = "" }: DoctorAppointmentsProps) => {
                         </div>
                         <ScrollArea className="h-[70px]">
                           <div className="space-y-1">
-                            {filteredAppointments.slice(0, 3).map((apt) => (
-                              <div
-                                key={apt.id}
-                                className={`text-xs p-1 rounded-sm cursor-pointer ${apt.status === "cancelled" ? "line-through" : ""}`}
-                                style={{
-                                  backgroundColor:
-                                    apt.type === "emergency"
-                                      ? "rgba(239, 68, 68, 0.1)"
-                                      : apt.type === "first-visit"
-                                        ? "rgba(59, 130, 246, 0.1)"
-                                        : "rgba(107, 114, 128, 0.1)",
-                                }}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleAppointmentClick(apt);
-                                }}
-                              >
-                                <div className="font-medium truncate">
-                                  {apt.time} - {apt.patientName}
+                            {filteredAppointments.length > 0 &&
+                              filteredAppointments.slice(0, 3).map((apt) => (
+                                <div
+                                  key={apt.id}
+                                  className={`text-xs p-1 rounded-sm cursor-pointer ${apt.status === "cancelled" ? "line-through" : ""}`}
+                                  style={{
+                                    backgroundColor:
+                                      apt.type === "emergency"
+                                        ? "rgba(239, 68, 68, 0.1)"
+                                        : apt.type === "first-visit"
+                                          ? "rgba(59, 130, 246, 0.1)"
+                                          : "rgba(107, 114, 128, 0.1)",
+                                  }}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleAppointmentClick(apt);
+                                  }}
+                                >
+                                  <div className="font-medium truncate">
+                                    {apt.time} - {apt.patientName}
+                                  </div>
                                 </div>
-                              </div>
-                            ))}
+                              ))}
                             {filteredAppointments.length > 3 && (
                               <div className="text-xs text-center text-muted-foreground">
                                 +{filteredAppointments.length - 3} more
@@ -872,49 +909,58 @@ const DoctorAppointments = ({ className = "" }: DoctorAppointmentsProps) => {
                       </div>
                       <ScrollArea className="h-[300px] p-2">
                         <div className="space-y-2">
-                          {filterAppointments(day.appointments).map((apt) => (
-                            <div
-                              key={apt.id}
-                              className={`p-2 rounded-md cursor-pointer border-l-4 ${apt.status === "cancelled" ? "line-through" : ""}`}
-                              style={{
-                                borderLeftColor:
-                                  apt.type === "emergency"
-                                    ? "rgb(239, 68, 68)"
-                                    : apt.type === "first-visit"
-                                      ? "rgb(59, 130, 246)"
-                                      : "rgb(107, 114, 128)",
-                                backgroundColor:
-                                  apt.type === "emergency"
-                                    ? "rgba(239, 68, 68, 0.1)"
-                                    : apt.type === "first-visit"
-                                      ? "rgba(59, 130, 246, 0.1)"
-                                      : "rgba(107, 114, 128, 0.1)",
-                              }}
-                              onClick={() => handleAppointmentClick(apt)}
-                            >
-                              <div className="font-medium">{apt.time}</div>
-                              <div className="flex items-center gap-1">
-                                <Avatar className="h-5 w-5">
-                                  <AvatarImage
-                                    src={apt.patientAvatar}
-                                    alt={apt.patientName}
-                                  />
-                                  <AvatarFallback className="text-[10px]">
-                                    {apt.patientName
-                                      .split(" ")
-                                      .map((n) => n[0])
-                                      .join("")}
-                                  </AvatarFallback>
-                                </Avatar>
-                                <span className="text-sm truncate">
-                                  {apt.patientName}
-                                </span>
-                              </div>
-                              <div className="text-xs text-muted-foreground truncate">
-                                {apt.chiefComplaint}
-                              </div>
-                            </div>
-                          ))}
+                          {(() => {
+                            const filteredAppts = filterAppointments(
+                              day.appointments,
+                            );
+                            return filteredAppts.length > 0
+                              ? filteredAppts.map((apt) => (
+                                  <div
+                                    key={apt.id}
+                                    className={`p-2 rounded-md cursor-pointer border-l-4 ${apt.status === "cancelled" ? "line-through" : ""}`}
+                                    style={{
+                                      borderLeftColor:
+                                        apt.type === "emergency"
+                                          ? "rgb(239, 68, 68)"
+                                          : apt.type === "first-visit"
+                                            ? "rgb(59, 130, 246)"
+                                            : "rgb(107, 114, 128)",
+                                      backgroundColor:
+                                        apt.type === "emergency"
+                                          ? "rgba(239, 68, 68, 0.1)"
+                                          : apt.type === "first-visit"
+                                            ? "rgba(59, 130, 246, 0.1)"
+                                            : "rgba(107, 114, 128, 0.1)",
+                                    }}
+                                    onClick={() => handleAppointmentClick(apt)}
+                                  >
+                                    <div className="font-medium">
+                                      {apt.time}
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                      <Avatar className="h-5 w-5">
+                                        <AvatarImage
+                                          src={apt.patientAvatar}
+                                          alt={apt.patientName}
+                                        />
+                                        <AvatarFallback className="text-[10px]">
+                                          {apt.patientName
+                                            .split(" ")
+                                            .map((n) => n[0])
+                                            .join("")}
+                                        </AvatarFallback>
+                                      </Avatar>
+                                      <span className="text-sm truncate">
+                                        {apt.patientName}
+                                      </span>
+                                    </div>
+                                    <div className="text-xs text-muted-foreground truncate">
+                                      {apt.chiefComplaint}
+                                    </div>
+                                  </div>
+                                ))
+                              : null;
+                          })()}
                           {day.appointments.length === 0 && (
                             <div className="text-center text-sm text-muted-foreground py-4">
                               No appointments
@@ -951,114 +997,131 @@ const DoctorAppointments = ({ className = "" }: DoctorAppointmentsProps) => {
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      {filteredDayAppointments.map((apt) => (
-                        <Card key={apt.id} className="overflow-hidden">
-                          <div
-                            className={`h-1 w-full ${apt.type === "emergency" ? "bg-destructive" : apt.type === "first-visit" ? "bg-primary" : "bg-secondary"}`}
-                          />
-                          <CardContent className="p-4">
-                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                              <div className="flex items-center gap-3">
-                                <Avatar className="h-10 w-10">
-                                  <AvatarImage
-                                    src={apt.patientAvatar}
-                                    alt={apt.patientName}
-                                  />
-                                  <AvatarFallback className="bg-primary text-primary-foreground">
-                                    {apt.patientName
-                                      .split(" ")
-                                      .map((n) => n[0])
-                                      .join("")}
-                                  </AvatarFallback>
-                                </Avatar>
-                                <div>
-                                  <div className="font-medium">
-                                    {apt.patientName}
+                      {filteredDayAppointments.length > 0 &&
+                        filteredDayAppointments.map((apt) => {
+                          // Only render if we have an appointment
+                          if (!apt) return null;
+
+                          return (
+                            <Card key={apt.id} className="overflow-hidden">
+                              <div
+                                className={`h-1 w-full ${apt.type === "emergency" ? "bg-destructive" : apt.type === "first-visit" ? "bg-primary" : "bg-secondary"}`}
+                              />
+                              <CardContent className="p-4">
+                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                  <div className="flex items-center gap-3">
+                                    <Avatar className="h-10 w-10">
+                                      <AvatarImage
+                                        src={apt.patientAvatar}
+                                        alt={apt.patientName}
+                                      />
+                                      <AvatarFallback className="bg-primary text-primary-foreground">
+                                        {apt.patientName
+                                          .split(" ")
+                                          .map((n) => n[0])
+                                          .join("")}
+                                      </AvatarFallback>
+                                    </Avatar>
+                                    <div>
+                                      <div className="font-medium">
+                                        {apt.patientName}
+                                      </div>
+                                      <div className="text-sm text-muted-foreground">
+                                        {apt.patientAge} years •{" "}
+                                        {apt.patientGender
+                                          .charAt(0)
+                                          .toUpperCase() +
+                                          apt.patientGender.slice(1)}
+                                      </div>
+                                    </div>
                                   </div>
-                                  <div className="text-sm text-muted-foreground">
-                                    {apt.patientAge} years •{" "}
-                                    {apt.patientGender.charAt(0).toUpperCase() +
-                                      apt.patientGender.slice(1)}
+                                  <div className="flex flex-wrap gap-2">
+                                    <Badge
+                                      variant={getStatusBadgeVariant(
+                                        apt.status,
+                                      )}
+                                    >
+                                      {formatAppointmentStatus(apt.status)}
+                                    </Badge>
+                                    <Badge
+                                      variant={getTypeBadgeVariant(apt.type)}
+                                    >
+                                      {formatAppointmentType(apt.type)}
+                                    </Badge>
+                                    <Badge
+                                      variant="outline"
+                                      className="flex items-center gap-1"
+                                    >
+                                      <Clock className="h-3 w-3" />
+                                      {formatAppointmentTime(
+                                        apt.time,
+                                        apt.duration,
+                                      )}
+                                    </Badge>
                                   </div>
                                 </div>
-                              </div>
-                              <div className="flex flex-wrap gap-2">
-                                <Badge
-                                  variant={getStatusBadgeVariant(apt.status)}
-                                >
-                                  {formatAppointmentStatus(apt.status)}
-                                </Badge>
-                                <Badge variant={getTypeBadgeVariant(apt.type)}>
-                                  {formatAppointmentType(apt.type)}
-                                </Badge>
-                                <Badge
-                                  variant="outline"
-                                  className="flex items-center gap-1"
-                                >
-                                  <Clock className="h-3 w-3" />
-                                  {formatAppointmentTime(
-                                    apt.time,
-                                    apt.duration,
+                                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div>
+                                    <h4 className="text-sm font-medium flex items-center gap-1 mb-1">
+                                      <AlertCircle className="h-4 w-4 text-destructive" />
+                                      Chief Complaint
+                                    </h4>
+                                    <p className="text-sm">
+                                      {apt.chiefComplaint}
+                                    </p>
+                                  </div>
+                                  {apt.vitalSigns && (
+                                    <div>
+                                      <h4 className="text-sm font-medium flex items-center gap-1 mb-1">
+                                        <Activity className="h-4 w-4 text-primary" />
+                                        Vital Signs
+                                      </h4>
+                                      <div className="grid grid-cols-2 gap-2 text-sm">
+                                        {apt.vitalSigns.bloodPressure && (
+                                          <div>
+                                            BP: {apt.vitalSigns.bloodPressure}
+                                          </div>
+                                        )}
+                                        {apt.vitalSigns.temperature && (
+                                          <div>
+                                            Temp: {apt.vitalSigns.temperature}
+                                          </div>
+                                        )}
+                                        {apt.vitalSigns.pulse && (
+                                          <div>
+                                            Pulse: {apt.vitalSigns.pulse}
+                                          </div>
+                                        )}
+                                        {apt.vitalSigns.respiratoryRate && (
+                                          <div>
+                                            Resp:{" "}
+                                            {apt.vitalSigns.respiratoryRate}
+                                          </div>
+                                        )}
+                                        {apt.vitalSigns.oxygenSaturation && (
+                                          <div>
+                                            O₂ Sat:{" "}
+                                            {apt.vitalSigns.oxygenSaturation}
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
                                   )}
-                                </Badge>
-                              </div>
-                            </div>
-                            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div>
-                                <h4 className="text-sm font-medium flex items-center gap-1 mb-1">
-                                  <AlertCircle className="h-4 w-4 text-destructive" />
-                                  Chief Complaint
-                                </h4>
-                                <p className="text-sm">{apt.chiefComplaint}</p>
-                              </div>
-                              {apt.vitalSigns && (
-                                <div>
-                                  <h4 className="text-sm font-medium flex items-center gap-1 mb-1">
-                                    <Activity className="h-4 w-4 text-primary" />
-                                    Vital Signs
-                                  </h4>
-                                  <div className="grid grid-cols-2 gap-2 text-sm">
-                                    {apt.vitalSigns.bloodPressure && (
-                                      <div>
-                                        BP: {apt.vitalSigns.bloodPressure}
-                                      </div>
-                                    )}
-                                    {apt.vitalSigns.temperature && (
-                                      <div>
-                                        Temp: {apt.vitalSigns.temperature}
-                                      </div>
-                                    )}
-                                    {apt.vitalSigns.pulse && (
-                                      <div>Pulse: {apt.vitalSigns.pulse}</div>
-                                    )}
-                                    {apt.vitalSigns.respiratoryRate && (
-                                      <div>
-                                        Resp: {apt.vitalSigns.respiratoryRate}
-                                      </div>
-                                    )}
-                                    {apt.vitalSigns.oxygenSaturation && (
-                                      <div>
-                                        O₂ Sat:{" "}
-                                        {apt.vitalSigns.oxygenSaturation}
-                                      </div>
-                                    )}
-                                  </div>
                                 </div>
-                              )}
-                            </div>
-                            <div className="mt-4 flex justify-end">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleAppointmentClick(apt)}
-                              >
-                                <Eye className="mr-2 h-4 w-4" />
-                                View Details
-                              </Button>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
+                                <div className="mt-4 flex justify-end">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleAppointmentClick(apt)}
+                                  >
+                                    <Eye className="mr-2 h-4 w-4" />
+                                    View Details
+                                  </Button>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          );
+                        })}
                     </div>
                   )}
                 </div>
