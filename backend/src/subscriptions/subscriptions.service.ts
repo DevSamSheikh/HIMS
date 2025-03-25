@@ -2,8 +2,7 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository, LessThan, MoreThan } from "typeorm";
 import { UserSubscription } from "./entities/user-subscription.entity";
-import { CreateSubscriptionDto } from "./dto/create-subscription.dto";
-import { UpdateSubscriptionDto } from "./dto/update-subscription.dto";
+import { CreateSubscriptionDto, UpdateSubscriptionDto } from "./dto";
 
 @Injectable()
 export class SubscriptionsService {
@@ -47,7 +46,7 @@ export class SubscriptionsService {
         isActive: true,
         endDate: MoreThan(now),
       },
-      relations: ["module"],
+      relations: { module: true },
     });
   }
 
@@ -62,7 +61,7 @@ export class SubscriptionsService {
         endDate: LessThan(thresholdDate),
         endDate: MoreThan(now),
       },
-      relations: ["user", "module"],
+      relations: { user: true, module: true },
     });
   }
 

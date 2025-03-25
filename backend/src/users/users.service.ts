@@ -4,10 +4,9 @@ import {
   ConflictException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { Repository, MoreThan } from "typeorm";
 import { User } from "./entities/user.entity";
-import { CreateUserDto } from "./dto/create-user.dto";
-import { UpdateUserDto } from "./dto/update-user.dto";
+import { CreateUserDto, UpdateUserDto } from "./dto";
 import * as bcrypt from "bcrypt";
 
 @Injectable()
@@ -149,7 +148,7 @@ export class UsersService {
     const user = await this.usersRepository.findOne({
       where: {
         passwordResetToken: token,
-        passwordResetExpires: { $gt: new Date() },
+        passwordResetExpires: MoreThan(new Date()),
       },
     });
 

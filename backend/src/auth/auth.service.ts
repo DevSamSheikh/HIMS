@@ -11,11 +11,13 @@ import { UsersService } from "../users/users.service";
 import { MailService } from "../mail/mail.service";
 import { ModulesService } from "../modules/modules.service";
 import { SubscriptionsService } from "../subscriptions/subscriptions.service";
-import { LoginDto } from "./dto/login.dto";
-import { SignupDto } from "./dto/signup.dto";
-import { ForgotPasswordDto } from "./dto/forgot-password.dto";
-import { ResetPasswordDto } from "./dto/reset-password.dto";
-import { VerifyEmailDto } from "./dto/verify-email.dto";
+import {
+  LoginDto,
+  SignupDto,
+  ForgotPasswordDto,
+  ResetPasswordDto,
+  VerifyEmailDto,
+} from "./dto";
 
 @Injectable()
 export class AuthService {
