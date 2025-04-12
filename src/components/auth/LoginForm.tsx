@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/components/ui/use-toast";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
-import AuthLayout from "./AuthLayout";
+import AuthLayoutWithSlider from "./AuthLayoutWithSlider";
 
 const LoginForm = () => {
   const navigate = useNavigate();
@@ -55,10 +55,9 @@ const LoginForm = () => {
   };
 
   return (
-    <AuthLayout
+    <AuthLayoutWithSlider
       title="Welcome back"
       subtitle="Enter your credentials to access your account"
-      image="https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=800&q=80"
     >
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-2">
@@ -150,7 +149,7 @@ const LoginForm = () => {
           </Link>
         </div>
       </form>
-    </AuthLayout>
+    </AuthLayoutWithSlider>
   );
 };
 

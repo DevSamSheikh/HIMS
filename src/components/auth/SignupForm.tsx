@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
+import { PhoneInput } from "@/components/ui/phone-input";
 import {
   Eye,
   EyeOff,
@@ -13,7 +14,7 @@ import {
   Check,
   X,
 } from "lucide-react";
-import AuthLayout from "./AuthLayout";
+import AuthLayoutWithSlider from "./AuthLayoutWithSlider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Popover,
@@ -27,8 +28,6 @@ interface FormErrors {
   email?: string;
   phone?: string;
   password?: string;
-  facilityName?: string;
-  facilityType?: string;
 }
 
 const SignupForm = () => {
@@ -45,8 +44,6 @@ const SignupForm = () => {
     email: "",
     phone: "",
     password: "",
-    facilityName: "",
-    facilityType: "",
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
@@ -78,10 +75,20 @@ const SignupForm = () => {
     validateField(name, value);
   };
 
+  const handlePhoneChange = (value: string) => {
+    setFormData((prev) => ({ ...prev, phone: value }));
+    validateField("phone", value);
+  };
+
   const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
     const { name } = e.target;
     setTouched((prev) => ({ ...prev, [name]: true }));
     validateField(name, formData[name as keyof typeof formData]);
+  };
+
+  const handlePhoneBlur = () => {
+    setTouched((prev) => ({ ...prev, phone: true }));
+    validateField("phone", formData.phone);
   };
 
   const validateField = (name: string, value: string) => {
@@ -109,10 +116,9 @@ const SignupForm = () => {
         break;
 
       case "phone":
+        // Phone validation is now handled by the PhoneInput component
         if (!value.trim()) {
           newErrors.phone = "Phone number is required";
-        } else if (!/^\+?[0-9]{10,15}$/.test(value.replace(/[\s-]/g, ""))) {
-          newErrors.phone = "Please enter a valid phone number";
         } else {
           delete newErrors.phone;
         }
@@ -133,22 +139,6 @@ const SignupForm = () => {
           newErrors.password = "Password must contain a special character";
         } else {
           delete newErrors.password;
-        }
-        break;
-
-      case "facilityName":
-        if (!value.trim()) {
-          newErrors.facilityName = "Facility name is required";
-        } else {
-          delete newErrors.facilityName;
-        }
-        break;
-
-      case "facilityType":
-        if (!value.trim()) {
-          newErrors.facilityType = "Facility type is required";
-        } else {
-          delete newErrors.facilityType;
         }
         break;
     }
@@ -229,7 +219,7 @@ const SignupForm = () => {
   };
 
   return (
-    <AuthLayout
+    <AuthLayoutWithSlider
       title={
         currentStep === "account" ? "Create your account" : "Select modules"
       }
@@ -238,7 +228,6 @@ const SignupForm = () => {
           ? "Enter your information to create an account"
           : "Choose the modules you need for your healthcare facility"
       }
-      image="https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800&q=80"
       className={currentStep === "modules" ? "w-full" : ""}
       currentStep={currentStep}
     >
@@ -277,22 +266,16 @@ const SignupForm = () => {
             )}
           </div>
 
-          <div className="space-y-1">
-            <Label htmlFor="phone">Phone Number</Label>
-            <Input
-              id="phone"
-              name="phone"
-              type="tel"
-              placeholder="+1 (555) 123-4567"
-              value={formData.phone}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              className={getInputClassName("phone")}
-            />
-            {touched.phone && errors.phone && (
-              <p className="text-sm text-red-500 mt-1">{errors.phone}</p>
-            )}
-          </div>
+          <PhoneInput
+            id="phone"
+            name="phone"
+            label="Phone Number"
+            value={formData.phone}
+            onChange={handlePhoneChange}
+            onBlur={handlePhoneBlur}
+            error={touched.phone && errors.phone ? errors.phone : undefined}
+            required
+          />
 
           <div className="space-y-1">
             <Label htmlFor="password">Password</Label>
@@ -420,38 +403,6 @@ const SignupForm = () => {
             </Popover>
           </div>
 
-          <div className="space-y-1">
-            <Label htmlFor="facilityName">Facility Name</Label>
-            <Input
-              id="facilityName"
-              name="facilityName"
-              placeholder="General Hospital"
-              value={formData.facilityName}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              className={getInputClassName("facilityName")}
-            />
-            {touched.facilityName && errors.facilityName && (
-              <p className="text-sm text-red-500 mt-1">{errors.facilityName}</p>
-            )}
-          </div>
-
-          <div className="space-y-1">
-            <Label htmlFor="facilityType">Facility Type</Label>
-            <Input
-              id="facilityType"
-              name="facilityType"
-              placeholder="Hospital, Clinic, etc."
-              value={formData.facilityType}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              className={getInputClassName("facilityType")}
-            />
-            {touched.facilityType && errors.facilityType && (
-              <p className="text-sm text-red-500 mt-1">{errors.facilityType}</p>
-            )}
-          </div>
-
           <Button
             type="submit"
             className="w-full h-11 mt-6"
@@ -491,7 +442,7 @@ const SignupForm = () => {
           <ModuleSelection onComplete={handleModuleSelection} />
         </div>
       </div>
-    </AuthLayout>
+    </AuthLayoutWithSlider>
   );
 };
 

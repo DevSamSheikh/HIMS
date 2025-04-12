@@ -24,50 +24,68 @@ interface Feature {
 }
 
 interface ModuleCardProps {
-  id: string;
-  title: string;
+  id?: string;
+  name: string;
   description: string;
   price: number;
-  features: Feature[];
-  isSelected?: boolean;
-  onToggle?: (id: string, selected: boolean) => void;
-  onViewDetails?: (id: string) => void;
+  icon?: string;
+  features?: Feature[];
+  selected: boolean;
+  onClick: () => void;
+  onViewDetails: () => void;
+  billingCycle?: "monthly" | "yearly" | "biennial";
 }
 
 const ModuleCard = ({
   id = "module-1",
-  title = "Patient Management",
+  name = "Patient Management",
   description = "Comprehensive patient data management with registration, search, and record viewing capabilities.",
   price = 99.99,
+  icon = "🏥",
   features = [
     { name: "Patient Registration", included: true },
     { name: "Medical History Tracking", included: true },
     { name: "Insurance Management", included: true },
     { name: "Document Upload", included: false },
   ],
-  isSelected = false,
-  onToggle = () => {},
+  selected = false,
+  onClick = () => {},
   onViewDetails = () => {},
+  billingCycle = "monthly",
 }: ModuleCardProps) => {
+  const getBillingText = () => {
+    switch (billingCycle) {
+      case "yearly":
+        return "per year";
+      case "biennial":
+        return "per 2 years";
+      default:
+        return "per month";
+    }
+  };
+
   return (
     <Card
       className="w-full h-full flex flex-col bg-white dark:bg-gray-800 border-2 transition-all duration-200 hover:shadow-md"
       style={{
-        borderColor: isSelected ? "hsl(var(--primary))" : "hsl(var(--border))",
+        borderColor: selected ? "hsl(var(--primary))" : "hsl(var(--border))",
       }}
     >
       <CardHeader className="pb-2">
         <div className="flex justify-between items-start">
-          <div>
-            <CardTitle className="text-lg font-bold">{title}</CardTitle>
-            <CardDescription className="text-sm mt-1 line-clamp-2">
-              {description}
-            </CardDescription>
+          <div className="flex items-center gap-2">
+            <span className="text-2xl">{icon}</span>
+            <div>
+              <CardTitle className="text-lg font-bold">{name}</CardTitle>
+              <CardDescription className="text-sm mt-1 line-clamp-2">
+                {description}
+              </CardDescription>
+            </div>
           </div>
           <Switch
-            checked={isSelected}
-            onCheckedChange={(checked) => onToggle(id, checked)}
-            aria-label={`Select ${title} module`}
+            checked={selected}
+            onCheckedChange={onClick}
+            aria-label={`Select ${name} module`}
           />
         </div>
       </CardHeader>
@@ -123,9 +141,9 @@ const ModuleCard = ({
       </CardContent>
       <CardFooter className="flex justify-between items-center pt-0 mt-auto">
         <Badge variant="outline" className="font-semibold">
-          ${price.toFixed(2)}/month
+          ${price.toFixed(2)} {getBillingText()}
         </Badge>
-        <Button variant="ghost" size="sm" onClick={() => onViewDetails(id)}>
+        <Button variant="ghost" size="sm" onClick={onViewDetails}>
           View Details
         </Button>
       </CardFooter>

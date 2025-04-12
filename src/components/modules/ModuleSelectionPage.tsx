@@ -19,24 +19,26 @@ const ModuleSelectionPage = ({
   const [isLoading, setIsLoading] = useState(false);
 
   const handleBack = () => {
-    navigate("/signup");
+    navigate(-1);
   };
 
   const handleComplete = async (selectedModules: string[]) => {
     setIsLoading(true);
 
     try {
-      // Simulate API call for registration
+      // Simulate API call for module selection
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       toast({
-        title: "Account created successfully",
-        description: "Please check your email for verification instructions",
+        title: "Modules selected",
+        description: `${selectedModules.length} modules have been selected`,
       });
-      navigate("/verify-email");
+
+      // The actual navigation happens in the PricingSummary component
+      // This is just a callback for any additional processing
     } catch (error) {
       toast({
-        title: "Error creating account",
+        title: "Error selecting modules",
         description: "Please try again later",
         variant: "destructive",
       });
@@ -46,12 +48,17 @@ const ModuleSelectionPage = ({
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div
+      className="min-h-screen bg-background"
+      style={{ height: "100vh", overflowY: "auto" }}
+    >
       <div className="container mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        <Button variant="ghost" className="mb-6" onClick={handleBack}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to account details
-        </Button>
+        {showBackButton && (
+          <Button variant="ghost" className="mb-6" onClick={handleBack}>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back
+          </Button>
+        )}
 
         <div className="mb-6">
           <h1 className="text-3xl font-bold">Module Selection</h1>

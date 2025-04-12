@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { Eye, EyeOff, Loader2, ArrowLeft } from "lucide-react";
-import AuthLayout from "./AuthLayout";
+import AuthLayoutWithSlider from "./AuthLayoutWithSlider";
 
 const ResetPasswordForm = () => {
   const navigate = useNavigate();
@@ -49,10 +49,9 @@ const ResetPasswordForm = () => {
   };
 
   return (
-    <AuthLayout
+    <AuthLayoutWithSlider
       title="Reset your password"
       subtitle="Enter your new password below"
-      image="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&q=80"
     >
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-2">
@@ -140,7 +139,7 @@ const ResetPasswordForm = () => {
           </Link>
         </div>
       </form>
-    </AuthLayout>
+    </AuthLayoutWithSlider>
   );
 };
 

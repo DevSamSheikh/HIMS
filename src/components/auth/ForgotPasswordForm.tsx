@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { ArrowLeft, Loader2, Mail } from "lucide-react";
-import AuthLayout from "./AuthLayout";
+import AuthLayoutWithSlider from "./AuthLayoutWithSlider";
 
 const ForgotPasswordForm = () => {
   const { toast } = useToast();
@@ -29,14 +29,13 @@ const ForgotPasswordForm = () => {
   };
 
   return (
-    <AuthLayout
+    <AuthLayoutWithSlider
       title={isSubmitted ? "Check your email" : "Forgot password"}
       subtitle={
         isSubmitted
           ? `We've sent a password reset link to ${email}`
           : "Enter your email and we'll send you a link to reset your password"
       }
-      image="https://images.unsplash.com/photo-1638202993928-7d113595e05b?w=800&q=80"
     >
       {isSubmitted ? (
         <div className="flex flex-col items-center justify-center py-6 space-y-6">
@@ -100,7 +99,7 @@ const ForgotPasswordForm = () => {
           </div>
         </form>
       )}
-    </AuthLayout>
+    </AuthLayoutWithSlider>
   );
 };
 
