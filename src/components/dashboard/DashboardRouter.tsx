@@ -1,5 +1,5 @@
 import React from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, Outlet } from "react-router-dom";
 import AdminDashboard from "./AdminDashboard";
 import PharmacyDashboard from "./PharmacyDashboard";
 import OPDDashboard from "./OPDDashboard";
@@ -20,6 +20,8 @@ const DashboardRouter = () => {
       return <IPDDashboard />;
     } else if (path.includes("/lab")) {
       return <LabDashboard />;
+    } else if (path.includes("/laboratory")) {
+      return <Outlet />; // Use Outlet for nested routes
     } else {
       // Default to admin dashboard
       return <AdminDashboard />;

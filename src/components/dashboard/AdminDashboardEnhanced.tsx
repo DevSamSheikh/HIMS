@@ -28,7 +28,7 @@ import {
   Layers,
   Users,
   Bed,
-  Flask,
+  Beaker,
   Pill,
   DollarSign,
   CreditCard,
@@ -317,7 +317,7 @@ const AdminDashboardEnhanced = () => {
             <Users className="h-4 w-4 mr-2" /> OPD
           </TabsTrigger>
           <TabsTrigger value="laboratory" className="flex items-center">
-            <Flask className="h-4 w-4 mr-2" /> Laboratory
+            <Beaker className="h-4 w-4 mr-2" /> Laboratory
           </TabsTrigger>
         </TabsList>
 
