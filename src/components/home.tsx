@@ -10,7 +10,7 @@ interface HomeProps {
   theme?: "light" | "dark";
 }
 
-const Home = ({
+export const Home = ({
   userName = "Dr. Smith",
   userAvatar = "",
   notificationCount = 3,

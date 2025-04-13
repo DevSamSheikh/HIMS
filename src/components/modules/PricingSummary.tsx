@@ -21,6 +21,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
+import { useAppDispatch } from "@/hooks/redux";
+import { activateFreeTrial, setSelectedModules } from "@/store/authSlice";
 
 interface Module {
   id: string;
@@ -30,36 +32,57 @@ interface Module {
 }
 
 interface PricingSummaryProps {
-  selectedModules: Module[];
-  totalPrice: number;
+  selectedModules?: Module[];
+  totalPrice?: number;
   onCheckout?: () => void;
-  onDownloadQuote?: () => void;
+  onDownloadQuote?: (couponCode?: string, couponDiscount?: number) => void;
   isGeneratingQuote?: boolean;
   billingCycle?: "monthly" | "yearly" | "biennial";
+  isDistributor?: boolean;
+  selectedDistributorPlan?: string | null;
+  distributorPlanPrice?: number;
+  downPayment?: number | null;
+  isFreeTrial?: boolean;
+  onFreeTrialChange?: (checked: boolean) => void;
 }
 
 const PricingSummary = ({
   selectedModules = [],
   totalPrice = 0,
   onCheckout = () => {},
-  onDownloadQuote = () => console.log("Download quote clicked"),
+  onDownloadQuote = () => {},
   isGeneratingQuote = false,
   billingCycle = "monthly",
+  isDistributor = false,
+  selectedDistributorPlan = null,
+  distributorPlanPrice = 0,
+  downPayment = null,
+  isFreeTrial = false,
+  onFreeTrialChange,
 }: PricingSummaryProps) => {
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
   const { toast } = useToast();
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
   const [isApplying, setIsApplying] = useState(false);
   const [couponDiscount, setCouponDiscount] = useState(0);
-  const [isFreeTrial, setIsFreeTrial] = useState(false);
+  const [isLocalFreeTrial, setIsLocalFreeTrial] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
+  // Use the prop value if provided, otherwise use local state
+  const effectiveIsFreeTrial = onFreeTrialChange
+    ? isFreeTrial
+    : isLocalFreeTrial;
+
   // Calculate bundle discount (10% if 3 or more modules selected)
-  const bundleDiscount = selectedModules.length >= 3 ? totalPrice * 0.1 : 0;
+  const bundleDiscount =
+    !isDistributor && selectedModules.length >= 3 ? totalPrice * 0.1 : 0;
 
   // Total after all discounts
-  const finalTotal = totalPrice - bundleDiscount - couponDiscount;
+  const finalTotal = isDistributor
+    ? distributorPlanPrice - couponDiscount
+    : totalPrice - bundleDiscount - couponDiscount;
 
   const getBillingText = () => {
     switch (billingCycle) {
@@ -85,10 +108,15 @@ const PricingSummary = ({
         HEALTH20: 0.2, // 20% off
         CLINIC15: 0.15, // 15% off
         FIRST25: 0.25, // 25% off
+        DIST10: 0.1, // 10% off for distributors
+        DIST20: 0.2, // 20% off for distributors
       };
 
+      const priceToDiscount = isDistributor ? distributorPlanPrice : totalPrice;
+
       if (validCoupons[couponCode.toUpperCase()]) {
-        const discount = totalPrice * validCoupons[couponCode.toUpperCase()];
+        const discount =
+          priceToDiscount * validCoupons[couponCode.toUpperCase()];
         setCouponDiscount(discount);
         setAppliedCoupon(couponCode.toUpperCase());
         toast({
@@ -112,6 +140,11 @@ const PricingSummary = ({
   const handleCheckout = () => {
     setIsProcessing(true);
 
+    if (!isDistributor) {
+      // Save selected modules to Redux store
+      dispatch(setSelectedModules(selectedModules.map((module) => module.id)));
+    }
+
     // Call the onCheckout prop first (for any parent component handling)
     if (onCheckout) {
       onCheckout();
@@ -119,8 +152,10 @@ const PricingSummary = ({
 
     // Simulate API call
     setTimeout(() => {
-      if (isFreeTrial) {
-        // For free trial, show success message and navigate to dashboard
+      if (effectiveIsFreeTrial) {
+        // For free trial, activate trial in Redux and navigate to dashboard
+        dispatch(activateFreeTrial());
+
         toast({
           title: "Free trial activated",
           description:
@@ -135,39 +170,96 @@ const PricingSummary = ({
     }, 1000);
   };
 
+  const handleDownloadQuote = () => {
+    console.log("Download Quote button clicked");
+    console.log("Applied coupon:", appliedCoupon);
+    console.log("Coupon discount:", couponDiscount);
+    console.log("Selected modules:", selectedModules);
+    console.log("Is distributor:", isDistributor);
+    console.log("Selected distributor plan:", selectedDistributorPlan);
+    onDownloadQuote(appliedCoupon || undefined, couponDiscount);
+  };
+
   return (
     <Card className="w-full max-w-[350px] bg-white shadow-lg mb-6">
       <CardHeader className="pb-2">
         <CardTitle className="text-xl font-bold">
-          Subscription Summary
+          {isDistributor ? "Distributor Plan Summary" : "Subscription Summary"}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium text-gray-500">
-            Selected Modules
-          </h3>
-          {selectedModules.length > 0 ? (
-            selectedModules.map((module) => (
-              <div
-                key={module.id}
-                className="flex justify-between items-center"
-              >
+        {isDistributor ? (
+          selectedDistributorPlan ? (
+            <div className="space-y-2">
+              <h3 className="text-sm font-medium text-gray-500">
+                Selected Plan
+              </h3>
+              <div className="flex justify-between items-center">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm">{module.name}</span>
+                  <span className="text-sm">
+                    {selectedDistributorPlan === "basic-distributor"
+                      ? "Basic Distributor"
+                      : selectedDistributorPlan === "professional-distributor"
+                        ? "Professional Distributor"
+                        : "Enterprise Distributor"}
+                  </span>
                   <Badge variant="outline" className="text-xs">
-                    {module.billingCycle || billingCycle}
+                    {billingCycle}
                   </Badge>
                 </div>
-                <span className="font-medium">${module.price.toFixed(2)}</span>
+                <span className="font-medium">
+                  ${distributorPlanPrice.toFixed(2)}
+                </span>
               </div>
-            ))
+
+              {downPayment !== null && (
+                <div className="mt-2 p-2 bg-muted rounded-md">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium">Down Payment</span>
+                    <span className="font-medium">
+                      ${downPayment.toFixed(2)}
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    One-time payment required to start as a distributor
+                  </p>
+                </div>
+              )}
+            </div>
           ) : (
             <div className="text-sm text-gray-400 italic">
-              No modules selected
+              No distributor plan selected
             </div>
-          )}
-        </div>
+          )
+        ) : (
+          <div className="space-y-2">
+            <h3 className="text-sm font-medium text-gray-500">
+              Selected Modules
+            </h3>
+            {selectedModules.length > 0 ? (
+              selectedModules.map((module) => (
+                <div
+                  key={module.id}
+                  className="flex justify-between items-center"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm">{module.name}</span>
+                    <Badge variant="outline" className="text-xs">
+                      {module.billingCycle || billingCycle}
+                    </Badge>
+                  </div>
+                  <span className="font-medium">
+                    ${module.price.toFixed(2)}
+                  </span>
+                </div>
+              ))
+            ) : (
+              <div className="text-sm text-gray-400 italic">
+                No modules selected
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="pt-2">
           <div className="flex items-center gap-2 mb-2">
@@ -180,7 +272,12 @@ const PricingSummary = ({
             <Button
               size="sm"
               onClick={handleApplyCoupon}
-              disabled={isApplying || !couponCode}
+              disabled={
+                isApplying ||
+                !couponCode ||
+                (isDistributor && !selectedDistributorPlan) ||
+                (!isDistributor && selectedModules.length === 0)
+              }
               className="whitespace-nowrap"
             >
               {isApplying ? (
@@ -203,10 +300,15 @@ const PricingSummary = ({
         <div className="space-y-2">
           <div className="flex justify-between items-center">
             <span className="text-sm text-gray-500">Subtotal</span>
-            <span className="font-medium">${totalPrice.toFixed(2)}</span>
+            <span className="font-medium">
+              $
+              {isDistributor
+                ? distributorPlanPrice.toFixed(2)
+                : totalPrice.toFixed(2)}
+            </span>
           </div>
 
-          {bundleDiscount > 0 && (
+          {!isDistributor && bundleDiscount > 0 && (
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-1">
                 <span className="text-sm text-gray-500">Bundle Discount</span>
@@ -263,11 +365,31 @@ const PricingSummary = ({
           </div>
         </div>
 
+        {downPayment !== null && isDistributor && (
+          <div className="bg-muted p-3 rounded-md">
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-medium">Initial Payment</span>
+              <span className="font-bold">
+                ${(finalTotal + downPayment).toFixed(2)}
+              </span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Includes first {billingCycle} payment and one-time down payment
+            </p>
+          </div>
+        )}
+
         <div className="flex items-start space-x-2 pt-2">
           <Checkbox
             id="free-trial"
-            checked={isFreeTrial}
-            onCheckedChange={(checked) => setIsFreeTrial(checked === true)}
+            checked={effectiveIsFreeTrial}
+            onCheckedChange={(checked) => {
+              if (onFreeTrialChange) {
+                onFreeTrialChange(checked === true);
+              } else {
+                setIsLocalFreeTrial(checked === true);
+              }
+            }}
           />
           <div className="grid gap-1.5 leading-none">
             <Label
@@ -277,8 +399,11 @@ const PricingSummary = ({
               Start with 14-day free trial
             </Label>
             <p className="text-xs text-muted-foreground">
-              Try all selected modules for free. No credit card required for
-              trial period.
+              Try{" "}
+              {isDistributor
+                ? "our distributor platform"
+                : "all selected modules"}{" "}
+              for free. No credit card required for trial period.
             </p>
           </div>
         </div>
@@ -287,26 +412,34 @@ const PricingSummary = ({
         <Button
           className="w-full"
           onClick={handleCheckout}
-          disabled={selectedModules.length === 0 || isProcessing}
+          disabled={
+            (isDistributor && !selectedDistributorPlan) ||
+            (!isDistributor && selectedModules.length === 0) ||
+            isProcessing
+          }
         >
           {isProcessing ? (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          ) : isFreeTrial ? (
+          ) : effectiveIsFreeTrial ? (
             <PlayCircle className="mr-2 h-4 w-4" />
           ) : (
             <CreditCard className="mr-2 h-4 w-4" />
           )}
           {isProcessing
             ? "Processing..."
-            : isFreeTrial
+            : effectiveIsFreeTrial
               ? "Start Free Trial"
               : "Proceed to Checkout"}
         </Button>
         <Button
           variant="outline"
           className="w-full"
-          onClick={onDownloadQuote}
-          disabled={isGeneratingQuote || selectedModules.length === 0}
+          onClick={handleDownloadQuote}
+          disabled={
+            isGeneratingQuote ||
+            (isDistributor && !selectedDistributorPlan) ||
+            (!isDistributor && selectedModules.length === 0)
+          }
         >
           {isGeneratingQuote ? (
             <>

@@ -6,6 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/components/ui/use-toast";
 import { ArrowLeft, CreditCard, Loader2 } from "lucide-react";
+import { useAppDispatch } from "@/hooks/redux";
+import { loginSuccess } from "@/store/authSlice";
 import {
   Select,
   SelectContent,
@@ -16,6 +18,7 @@ import {
 
 const BillingDetailsPage = () => {
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
   const { toast } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
   const [formData, setFormData] = useState({
@@ -47,10 +50,32 @@ const BillingDetailsPage = () => {
     // Simulate payment processing
     setTimeout(() => {
       setIsProcessing(false);
+
+      // Create a user object with payment info (in a real app, don't store sensitive data)
+      const user = {
+        id: "user-" + Date.now(),
+        name: formData.cardName,
+        email: "user@example.com",
+        role: "customer",
+        paymentStatus: "active",
+        billingAddress: {
+          address: formData.address,
+          city: formData.city,
+          state: formData.state,
+          zipCode: formData.zipCode,
+          country: formData.country,
+        },
+        activatedAt: new Date().toISOString(),
+      };
+
+      // Dispatch login success to update auth state
+      dispatch(loginSuccess(user));
+
       toast({
         title: "Payment successful",
         description: "Your subscription has been activated",
       });
+
       // Navigate to dashboard after successful payment
       navigate("/dashboard");
     }, 2000);
@@ -80,8 +105,8 @@ const BillingDetailsPage = () => {
   });
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto py-6 px-4 sm:px-6 lg:px-8">
+    <div className="flex flex-col h-screen bg-background overflow-hidden">
+      <div className="container mx-auto py-6 px-4 sm:px-6 lg:px-8 flex-grow overflow-y-auto scrollbar-hide">
         <Button variant="ghost" className="mb-6" onClick={handleBack}>
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to module selection
@@ -281,7 +306,7 @@ const BillingDetailsPage = () => {
           </div>
 
           <div>
-            <div className="bg-white p-6 rounded-lg border shadow-sm sticky top-6">
+            <div className="bg-white p-6 rounded-lg border shadow-sm lg:sticky lg:top-6 max-h-[calc(100vh-6rem)] overflow-y-auto scrollbar-hide">
               <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
               <div className="space-y-4">
                 <div className="flex justify-between">

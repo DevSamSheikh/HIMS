@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Bell, Menu, Moon, Search, Settings, Sun, User, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,8 @@ import {
   CommandItem,
   CommandEmpty,
 } from "@/components/ui/command";
+import { useAppDispatch } from "@/hooks/redux";
+import { logout } from "@/store/authSlice";
 
 interface HeaderProps {
   userName?: string;
@@ -52,6 +55,8 @@ const Header = ({
   onToggleSidebar = () => {},
   isMobile = false,
 }: HeaderProps) => {
+  const navigate = useNavigate();
+  const dispatch = useAppDispatch();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -243,7 +248,14 @@ const Header = ({
                   Settings
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>Log out</DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    dispatch(logout());
+                    navigate("/login");
+                  }}
+                >
+                  Log out
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>

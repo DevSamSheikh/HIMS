@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,9 +7,13 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/components/ui/use-toast";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import AuthLayoutWithSlider from "./AuthLayoutWithSlider";
+import { useAppDispatch } from "@/hooks/redux";
+import { loginStart, loginSuccess, loginFailure } from "@/store/authSlice";
 
 const LoginForm = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const dispatch = useAppDispatch();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -31,26 +35,29 @@ const LoginForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    dispatch(loginStart());
 
     // Simulate API call
     setTimeout(() => {
-      setIsLoading(false);
       // Mock successful login
+      const user = {
+        id: "user-123",
+        email: formData.email,
+        name: "Dr. Smith",
+        role: "admin",
+      };
+
+      dispatch(loginSuccess(user));
+
       toast({
         title: "Login successful",
         description: "Welcome back to HIMS",
       });
 
-      // Store user data in localStorage for demo purposes
-      localStorage.setItem(
-        "hims_user",
-        JSON.stringify({
-          email: formData.email,
-          name: "Dr. Smith",
-        }),
-      );
+      // Navigate to home route to ensure layout is displayed
+      navigate("/", { replace: true });
 
-      navigate("/");
+      setIsLoading(false);
     }, 1500);
   };
 

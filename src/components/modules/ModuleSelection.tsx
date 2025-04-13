@@ -15,7 +15,9 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 
 interface ModuleSelectionProps {
-  onComplete?: (selectedModules: string[]) => void;
+  onComplete?: (selectedModules: string[], modulesData?: any[]) => void;
+  onDownloadQuote?: (couponCode?: string, couponDiscount?: number) => void;
+  isGeneratingQuote?: boolean;
 }
 
 interface Feature {
@@ -33,7 +35,11 @@ interface Module {
   features: Feature[];
 }
 
-const ModuleSelection = ({ onComplete }: ModuleSelectionProps) => {
+const ModuleSelection = ({
+  onComplete,
+  onDownloadQuote,
+  isGeneratingQuote = false,
+}: ModuleSelectionProps) => {
   const [selectedModules, setSelectedModules] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -208,7 +214,23 @@ const ModuleSelection = ({ onComplete }: ModuleSelectionProps) => {
   const handleComplete = () => {
     setIsLoading(true);
     if (onComplete) {
-      onComplete(selectedModules);
+      // Pass both the module IDs and the full module data
+      const modulesData = selectedModules.map((moduleId) => {
+        const module = modules.find((m) => m.id === moduleId);
+        return {
+          id: module?.id,
+          name: module?.name,
+          price: module
+            ? billingCycle === "monthly"
+              ? module.price
+              : billingCycle === "yearly"
+                ? module.price * 10
+                : module.price * 20 * 0.8
+            : 0,
+          billingCycle: billingCycle,
+        };
+      });
+      onComplete(selectedModules, modulesData);
     }
   };
 
@@ -439,6 +461,8 @@ const ModuleSelection = ({ onComplete }: ModuleSelectionProps) => {
                 totalPrice={totalPrice}
                 billingCycle={billingCycle}
                 onCheckout={handleComplete}
+                onDownloadQuote={onDownloadQuote}
+                isGeneratingQuote={isGeneratingQuote}
               />
             </div>
           </div>

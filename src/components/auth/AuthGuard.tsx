@@ -1,5 +1,7 @@
-import React, { ReactNode, useEffect, useState } from "react";
+import React, { ReactNode, useEffect } from "react";
 import { Navigate, useLocation } from "react-router-dom";
+import { useAppSelector, useAppDispatch } from "@/hooks/redux";
+import { checkAuth } from "@/store/authSlice";
 
 interface AuthGuardProps {
   children: ReactNode;
@@ -7,21 +9,16 @@ interface AuthGuardProps {
 
 const AuthGuard = ({ children }: AuthGuardProps) => {
   const location = useLocation();
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const dispatch = useAppDispatch();
+  const { isAuthenticated, isLoading } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
-    // In a real app, this would check for a valid token in localStorage or cookies
-    // For demo purposes, we'll just check if there's any user data in localStorage
-    const checkAuth = () => {
-      const user = localStorage.getItem("hims_user");
-      setIsAuthenticated(!!user);
-    };
-
-    checkAuth();
-  }, []);
+    // Check authentication status from Redux store
+    dispatch(checkAuth());
+  }, [dispatch]);
 
   // Show nothing while checking authentication
-  if (isAuthenticated === null) {
+  if (isLoading) {
     return null;
   }
 

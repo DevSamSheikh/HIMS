@@ -174,8 +174,18 @@ const SignupForm = () => {
   const handleNextStep = (e: React.FormEvent) => {
     e.preventDefault();
     if (validateForm()) {
-      // Navigate to the separate module selection page instead of changing step
-      navigate("/module-selection");
+      try {
+        // Navigate to the separate module selection page instead of changing step
+        navigate("/module-selection");
+      } catch (error) {
+        console.error("Navigation error:", error);
+        toast({
+          title: "Navigation error",
+          description:
+            "There was a problem navigating to the module selection page",
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -202,8 +212,19 @@ const SignupForm = () => {
         title: "Account created successfully",
         description: "Welcome to your healthcare dashboard",
       });
-      navigate("/");
+
+      try {
+        navigate("/");
+      } catch (error) {
+        console.error("Navigation error:", error);
+        toast({
+          title: "Navigation error",
+          description: "There was a problem navigating to the dashboard",
+          variant: "destructive",
+        });
+      }
     } catch (error) {
+      console.error("Signup error:", error);
       toast({
         title: "Error creating account",
         description: "Please try again later",
