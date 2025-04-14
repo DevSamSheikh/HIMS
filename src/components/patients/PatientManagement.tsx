@@ -86,11 +86,17 @@ const PatientManagement = () => {
         </TabsContent>
 
         <TabsContent value="opd" className="space-y-4">
-          <OPDManagement searchQuery={searchQuery} />
+          <OPDManagement
+            searchQuery={searchQuery}
+            isInPatientManagement={true}
+          />
         </TabsContent>
 
         <TabsContent value="ipd" className="space-y-4">
-          <IPDManagement searchQuery={searchQuery} />
+          <IPDManagement
+            searchQuery={searchQuery}
+            isInPatientManagement={true}
+          />
         </TabsContent>
 
         <TabsContent value="reports" className="space-y-4">

@@ -13,9 +13,13 @@ import { OPDVisit } from "../types";
 
 interface OPDManagementProps {
   searchQuery: string;
+  isInPatientManagement?: boolean;
 }
 
-const OPDManagement: React.FC<OPDManagementProps> = ({ searchQuery }) => {
+const OPDManagement: React.FC<OPDManagementProps> = ({
+  searchQuery,
+  isInPatientManagement = false,
+}) => {
   const [activeTab, setActiveTab] = useState<string>("visits");
   const [isNewVisitOpen, setIsNewVisitOpen] = useState<boolean>(false);
   const [localSearchQuery, setLocalSearchQuery] = useState<string>(searchQuery);
@@ -33,10 +37,12 @@ const OPDManagement: React.FC<OPDManagementProps> = ({ searchQuery }) => {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">OPD Management</h2>
-        <Button onClick={() => setIsNewVisitOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          New OPD Visit
-        </Button>
+        {!isInPatientManagement && (
+          <Button onClick={() => setIsNewVisitOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            New OPD Visit
+          </Button>
+        )}
       </div>
 
       <Tabs
@@ -63,15 +69,17 @@ const OPDManagement: React.FC<OPDManagementProps> = ({ searchQuery }) => {
             </TabsTrigger>
           </TabsList>
 
-          <div className="relative w-[300px]">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search OPD visits..."
-              value={localSearchQuery}
-              onChange={(e) => setLocalSearchQuery(e.target.value)}
-              className="pl-8"
-            />
-          </div>
+          {!isInPatientManagement && (
+            <div className="relative w-[300px]">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search OPD visits..."
+                value={localSearchQuery}
+                onChange={(e) => setLocalSearchQuery(e.target.value)}
+                className="pl-8"
+              />
+            </div>
+          )}
         </div>
 
         <TabsContent value="visits" className="space-y-4">

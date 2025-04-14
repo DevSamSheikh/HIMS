@@ -62,6 +62,7 @@ import DischargeSlip from "./DischargeSlip";
 
 interface IPDManagementProps {
   searchQuery: string;
+  isInPatientManagement?: boolean;
 }
 
 interface Admission {
@@ -127,7 +128,10 @@ interface Discharge {
   medications?: string[];
 }
 
-const IPDManagement: React.FC<IPDManagementProps> = ({ searchQuery }) => {
+const IPDManagement: React.FC<IPDManagementProps> = ({
+  searchQuery,
+  isInPatientManagement = false,
+}) => {
   const [activeTab, setActiveTab] = useState<string>("admissions");
   const [isAdmissionDialogOpen, setIsAdmissionDialogOpen] = useState(false);
   const [isTransferDialogOpen, setIsTransferDialogOpen] = useState(false);
@@ -761,12 +765,14 @@ const IPDManagement: React.FC<IPDManagementProps> = ({ searchQuery }) => {
             Manage inpatient admissions and ward assignments
           </p>
         </div>
-        <div className="flex space-x-2">
-          <Button onClick={() => setIsAdmissionDialogOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            New Admission
-          </Button>
-        </div>
+        {!isInPatientManagement && (
+          <div className="flex space-x-2">
+            <Button onClick={() => setIsAdmissionDialogOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              New Admission
+            </Button>
+          </div>
+        )}
       </div>
 
       <Tabs
@@ -794,7 +800,7 @@ const IPDManagement: React.FC<IPDManagementProps> = ({ searchQuery }) => {
             </TabsTrigger>
           </TabsList>
 
-          {activeTab === "admissions" && (
+          {activeTab === "admissions" && !isInPatientManagement && (
             <div className="flex items-center space-x-2">
               <div className="relative w-[250px]">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -805,6 +811,25 @@ const IPDManagement: React.FC<IPDManagementProps> = ({ searchQuery }) => {
                 />
               </div>
 
+              <Select value={filterStatus} onValueChange={setFilterStatus}>
+                <SelectTrigger className="w-[180px]">
+                  <div className="flex items-center">
+                    <Filter className="mr-2 h-4 w-4" />
+                    <SelectValue placeholder="Filter by status" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="stable">Stable</SelectItem>
+                  <SelectItem value="critical">Critical</SelectItem>
+                  <SelectItem value="discharged">Discharged</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          {activeTab === "admissions" && isInPatientManagement && (
+            <div className="flex items-center space-x-2">
               <Select value={filterStatus} onValueChange={setFilterStatus}>
                 <SelectTrigger className="w-[180px]">
                   <div className="flex items-center">

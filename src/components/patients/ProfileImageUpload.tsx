@@ -7,12 +7,14 @@ interface ProfileImageUploadProps {
   initialImage?: string;
   onImageChange: (imageUrl: string) => void;
   name?: string;
+  size?: "small" | "medium" | "large";
 }
 
 const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({
   initialImage,
   onImageChange,
   name = "",
+  size = "medium",
 }) => {
   const [image, setImage] = useState<string | undefined>(initialImage);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -41,21 +43,47 @@ const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({
     }
   };
 
+  // Size configurations
+  const sizeClasses = {
+    small: {
+      avatar: "h-16 w-16",
+      icon: "h-4 w-4",
+      button: "text-xs",
+      showButton: false,
+    },
+    medium: {
+      avatar: "h-24 w-24",
+      icon: "h-6 w-6",
+      button: "text-sm",
+      showButton: true,
+    },
+    large: {
+      avatar: "h-32 w-32",
+      icon: "h-10 w-10",
+      button: "text-base",
+      showButton: true,
+    },
+  };
+
+  const classes = sizeClasses[size];
+
   return (
-    <div className="flex flex-col items-center gap-3">
+    <div
+      className={`flex ${classes.showButton ? "flex-col" : ""} items-center gap-3`}
+    >
       <div className="relative cursor-pointer group" onClick={handleImageClick}>
-        <Avatar className="h-24 w-24 border-2 border-primary/20">
+        <Avatar className={`${classes.avatar} border-2 border-primary/20`}>
           <AvatarImage src={image} alt={name} />
           <AvatarFallback className="text-lg bg-primary/10">
             {name ? (
               getInitials(name)
             ) : (
-              <User className="h-10 w-10 text-muted-foreground" />
+              <User className={classes.icon + " text-muted-foreground"} />
             )}
           </AvatarFallback>
         </Avatar>
         <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-          <Camera className="h-8 w-8 text-white" />
+          <Camera className={`${classes.icon} text-white`} />
         </div>
       </div>
       <input
@@ -65,16 +93,18 @@ const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({
         accept="image/*"
         className="hidden"
       />
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        className="flex items-center gap-2"
-        onClick={handleImageClick}
-      >
-        <Upload className="h-4 w-4" />
-        Upload Photo
-      </Button>
+      {classes.showButton && (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className={`flex items-center gap-2 ${classes.button}`}
+          onClick={handleImageClick}
+        >
+          <Upload className="h-4 w-4" />
+          Upload Photo
+        </Button>
+      )}
     </div>
   );
 };
