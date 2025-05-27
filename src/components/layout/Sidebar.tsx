@@ -499,6 +499,7 @@ const Sidebar = ({
     //     { id: "settings", label: "Settings", href: "/laboratory/settings" },
     //   ],
     // },
+    
     {
       id: "patients",
       label: "Patient Management",
