@@ -55,7 +55,7 @@ const LoginForm = () => {
       });
 
       // Navigate to home route to ensure layout is displayed
-      navigate("/", { replace: true });
+      navigate("/opd-dashboard", { replace: true });
 
       setIsLoading(false);
     }, 1500);
@@ -146,7 +146,7 @@ const LoginForm = () => {
           )}
         </Button>
 
-        <div className="text-center text-sm">
+        {/* <div className="text-center text-sm">
           Don't have an account?{" "}
           <Link
             to="/signup"
@@ -154,7 +154,7 @@ const LoginForm = () => {
           >
             Sign up
           </Link>
-        </div>
+        </div> */}
       </form>
     </AuthLayoutWithSlider>
   );

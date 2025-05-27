@@ -214,7 +214,7 @@ const SignupForm = () => {
       });
 
       try {
-        navigate("/");
+        navigate("/opd-dashboard");
       } catch (error) {
         console.error("Navigation error:", error);
         toast({
