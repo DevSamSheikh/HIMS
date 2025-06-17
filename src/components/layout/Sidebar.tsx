@@ -716,7 +716,7 @@ const Sidebar = ({
       <div
         className={cn(
           "hidden md:flex flex-col h-full border-r transition-all duration-300",
-          isCollapsed ? "w-[60px]" : "w-[280px]",
+          isCollapsed ? "w-[60px]" : "w-[240px]",
           className,
         )}
       >

@@ -84,7 +84,7 @@ const AdminDashboard = lazy(
   () => import("./components/dashboard/AdminDashboard"),
 );
 const PharmacyDashboard = lazy(
-  () => import("./components/dashboard/PharmacyDashboard"),
+  () => import("./components/dashboard/NewPharmacyDashboard"),
 );
 const OPDDashboard = lazy(() => import("./components/dashboard/OPDDashboard"));
 const IPDDashboard = lazy(() => import("./components/dashboard/IPDDashboard"));

@@ -2,6 +2,7 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { cn } from "@/lib/utils";
 import { Activity, Calendar, CreditCard, AlertCircle } from "lucide-react";
+import TopSellingPiechart from "./charts/TopSellingLinechart";
 
 interface StatisticCardProps {
   title: string;
@@ -24,34 +25,36 @@ const StatisticCard = ({
   className,
 }: StatisticCardProps) => {
   return (
-    <Card className={cn("h-full bg-card", className)}>
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">
+    <div className={cn(`h-full  card rounded-xl`, className)}>
+      <CardHeader className="flex w-full icon-Parent  justify-between pb-2">
+        <div className="rounded-full w-fit icon mb-2 p-2">{icon}</div>
+        <CardTitle className="text-sm font-roboto font-normal  text-gray-700">
           {title}
         </CardTitle>
-        <div className="rounded-full bg-muted p-2">{icon}</div>
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold">{value}</div>
-        <p className="text-xs text-muted-foreground mt-1">{description}</p>
+        <div className="text-2xl font-roboto text-[#151D48] font-bold">
+          {value}
+        </div>
+        <p className="text-xs font-roboto  mt-1">{description}</p>
         {trend && (
           <div className="flex items-center mt-2">
             <span
               className={cn(
-                "text-xs font-medium",
-                trend.isPositive ? "text-green-500" : "text-red-500",
+                "text-xs font-roboto font-medium",
+                trend.isPositive ? "text-green-500" : "text-red-500"
               )}
             >
               {trend.isPositive ? "+" : "-"}
               {Math.abs(trend.value)}%
             </span>
-            <span className="text-xs text-muted-foreground ml-1">
+            <span className="text-xs font-roboto text-[#151D48] ml-1">
               from last month
             </span>
           </div>
         )}
       </CardContent>
-    </Card>
+    </div>
   );
 };
 
@@ -60,6 +63,7 @@ interface StatisticsPanelProps {
   className?: string;
 }
 
+// OPD cards
 const StatisticsPanel = ({
   statistics = [
     {
@@ -93,14 +97,22 @@ const StatisticsPanel = ({
   className,
 }: StatisticsPanelProps) => {
   return (
-    <div className={cn("w-full bg-card p-4 rounded-lg", className)}>
-      <h2 className="text-lg font-semibold mb-4">System Overview</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {statistics.map((stat, index) => (
-          <StatisticCard key={index} {...stat} />
-        ))}
+    <>
+      <div
+        className={cn("w-[65%] bg-card p-4 rounded-lg shadow-sm ", className)}
+      >
+        <h2 className="text-lg font-semibold mb-4">System Overview</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {statistics.map((stat, index) => (
+            <StatisticCard key={index} {...stat} />
+          ))}
+        </div>
       </div>
-    </div>
+      <div className="w-[35%] bg-card p-4 rounded-lg ">
+        <h2 className="text-lg font-semibold font-poppins mb-4">Top Selling Medications</h2>
+        <TopSellingPiechart />
+      </div>
+    </>
   );
 };
 

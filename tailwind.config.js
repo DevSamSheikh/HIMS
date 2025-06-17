@@ -17,6 +17,18 @@ module.exports = {
       },
     },
     extend: {
+       fontFamily: {
+        // This will override the default sans-serif fonts
+        // Replace 'Inter' and the generic fallbacks with your desired fonts
+        sans: ['Inter', 'system-ui', 'Avenir', 'Helvetica', 'Arial', 'sans-serif'],
+        roboto: ['Roboto', 'sans-serif'],
+        poppins: ['Poppins', 'sans-serif'],
+
+        
+        // You can do the same for serif and mono if needed
+        // serif: ['Georgia', 'serif'],
+        // mono: ['Menlo', 'monospace'],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",

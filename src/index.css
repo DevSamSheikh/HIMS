@@ -1,11 +1,20 @@
+
+/* Poppins */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+/* Roboto */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
+
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
 
 @layer base {
   :root {
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
+    
 
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
@@ -200,3 +209,47 @@
     height: 100%;
   }
 }
+
+/* --- Card 1 --- */
+.bg-ColorFul .card:nth-child(1) {
+  background-color: #FFE2E5; 
+  /* border:2px solid #FA5A7D;  */
+}
+.bg-ColorFul .card:nth-child(1) .icon {
+  background-color: #FA5A7D;
+  color: #FFFFFF;
+}
+
+/* --- Card 2 --- */
+.bg-ColorFul .card:nth-child(2) {
+  background-color: #FFF4DE;
+  /* border:2px solid #FF947A; */
+}
+.bg-ColorFul .card:nth-child(2) .icon {
+  background-color: #FF947A;
+  color: #FFFFFF; /* Added white color for consistency */
+}
+
+/* --- Card 3 --- */
+.bg-ColorFul .card:nth-child(3) {
+  background-color: #DCFCE7;
+  /* border:2px solid #3CD856; */
+}
+.bg-ColorFul .card:nth-child(3) .icon {
+  background-color: #3CD856;
+  color: #FFFFFF; /* Added white color for consistency */
+}
+
+/* --- Card 4 --- */
+.bg-ColorFul .card:nth-child(4) {
+  background-color: #F3E8FF;
+  /* border:2px solid #BF83FF; */
+}
+.bg-ColorFul .card:nth-child(4) .icon {
+  background-color: #BF83FF;
+  color: #FFFFFF; /* Added white color for consistency */
+}
+/* Icons */
+
+
+
