@@ -386,7 +386,7 @@ const Sidebar = ({
 
     // Check for main sections
     const mainSections = [
-      // { path: "/pharmacy-dashboard", id: "pharmacy-dashboard" },
+      { path: "/pharmacy-dashboard", id: "pharmacy-dashboard" },
       { path: "/opd-dashboard", id: "opd-dashboard" },
       // { path: "/ipd-dashboard", id: "ipd-dashboard" },
       // { path: "/lab-dashboard", id: "lab-dashboard" },
@@ -411,7 +411,7 @@ const Sidebar = ({
       // { prefix: "/doctors", id: "doctors" },
       { prefix: "/opd", id: "opd" },
       // { prefix: "/ipd", id: "ipd" },
-      // { prefix: "/pharmacy", id: "pharmacy" },
+      { prefix: "/pharmacy", id: "pharmacy" },
       // { prefix: "/lab", id: "lab" },
       // { prefix: "/laboratory", id: "laboratory" },
       // { prefix: "/billing", id: "billing" },
@@ -451,12 +451,12 @@ const Sidebar = ({
     //   icon: <LayoutDashboard size={20} />,
     //   href: "/",
     // },
-    // {
-    //   id: "pharmacy-dashboard",
-    //   label: "Pharmacy Dashboard",
-    //   icon: <Pill size={20} />,
-    //   href: "/pharmacy-dashboard",
-    // },
+    {
+      id: "pharmacy-dashboard",
+      label: "Pharmacy Dashboard",
+      icon: <Pill size={20} />,
+      href: "/pharmacy-dashboard",
+    },
     {
       id: "opd-dashboard",
       label: "OPD Dashboard",
@@ -569,23 +569,23 @@ const Sidebar = ({
     //     },
     //   ],
     // },
-    // {
-    //   id: "pharmacy",
-    //   label: "Pharmacy",
-    //   icon: <Pill size={20} />,
-    //   subItems: [
-    //     { id: "items", label: "Items", href: "/pharmacy/items" },
-    //     { id: "customers", label: "Customers", href: "/pharmacy/customers" },
-    //     { id: "inventory", label: "Inventory", href: "/pharmacy/inventory" },
-    //     {
-    //       id: "prescriptions",
-    //       label: "Prescriptions",
-    //       href: "/pharmacy/prescriptions",
-    //     },
-    //     { id: "purchase", label: "Purchase", href: "/pharmacy/purchase" },
-    //     { id: "sales", label: "Sales", href: "/pharmacy/sales" },
-    //   ],
-    // },
+    {
+      id: "pharmacy",
+      label: "Pharmacy",
+      icon: <Pill size={20} />,
+      subItems: [
+        { id: "items", label: "Items", href: "/pharmacy/items" },
+        { id: "customers", label: "Customers", href: "/pharmacy/customers" },
+        { id: "inventory", label: "Inventory", href: "/pharmacy/inventory" },
+        {
+          id: "prescriptions",
+          label: "Prescriptions",
+          href: "/pharmacy/prescriptions",
+        },
+        { id: "purchase", label: "Purchase", href: "/pharmacy/purchase" },
+        { id: "sales", label: "Sales", href: "/pharmacy/sales" },
+      ],
+    },
     // {
     //   id: "records",
     //   label: "Records & Definitions",
@@ -626,11 +626,11 @@ const Sidebar = ({
     //       label: "Permissions",
     //       href: "/security/permissions",
     //     },
-    //     {
-    //       id: "control-panel",
-    //       label: "Control Panel",
-    //       href: "/security/control-panel",
-    //     },
+        {
+          id: "control-panel",
+          label: "Control Panel",
+          href: "/security/control-panel",
+        },
     //   ],
     // },
     // {
