@@ -53,7 +53,7 @@ const CustomLegend = () => (
 
 const CustomerSatisfactionchart = () => {
   return (
-    <div className="w-full h-full bg-white rounded-xl shadow-sm border border-[#F8F9FA] p-4 flex flex-col items-center">
+    <div className="w-full  h-full bg-white rounded-xl shadow-sm border border-[#F8F9FA] p-4 flex flex-col items-center">
       <h2 className="text-xl font-semibold text-center mb-2 font-poppins">Customer Satisfaction</h2>
       <div style={{ width: '100%', height: 220 }}>
         <ResponsiveContainer width="100%" height="100%">

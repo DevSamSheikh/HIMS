@@ -25,10 +25,10 @@ const StatisticCard = ({
   className,
 }: StatisticCardProps) => {
   return (
-    <div className={cn(`h-full  card rounded-xl`, className)}>
-      <CardHeader className="flex w-full icon-Parent  justify-between pb-2">
+    <div className={cn(`h-full card rounded-xl`, className)}>
+      <CardHeader className="flex w-full icon-Parent justify-between pb-2">
         <div className="rounded-full w-fit icon mb-2 p-2">{icon}</div>
-        <CardTitle className="text-sm font-roboto font-normal  text-gray-700">
+        <CardTitle className="text-sm font-roboto font-normal text-gray-700">
           {title}
         </CardTitle>
       </CardHeader>
@@ -36,7 +36,7 @@ const StatisticCard = ({
         <div className="text-2xl font-roboto text-[#151D48] font-bold">
           {value}
         </div>
-        <p className="text-xs font-roboto  mt-1">{description}</p>
+        <p className="text-xs font-roboto mt-1">{description}</p>
         {trend && (
           <div className="flex items-center mt-2">
             <span
@@ -63,7 +63,6 @@ interface StatisticsPanelProps {
   className?: string;
 }
 
-// OPD cards
 const StatisticsPanel = ({
   statistics = [
     {
@@ -97,22 +96,29 @@ const StatisticsPanel = ({
   className,
 }: StatisticsPanelProps) => {
   return (
-    <>
-      <div
-        className={cn("w-[65%] bg-card p-4 rounded-lg shadow-sm ", className)}
-      >
+    <div
+      className={cn(
+        "w-full grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch",
+        className
+      )}
+    >
+      {/* Statistic Cards */}
+      <div className="col-span-1 lg:col-span-2 bg-card p-4 rounded-lg shadow-sm flex flex-col">
         <h2 className="text-lg font-semibold mb-4">System Overview</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {statistics.map((stat, index) => (
             <StatisticCard key={index} {...stat} />
           ))}
         </div>
       </div>
-      <div className="w-[35%] bg-card p-4 rounded-lg ">
-        <h2 className="text-lg font-semibold font-poppins mb-4">Top Selling Medications</h2>
+      {/* Chart */}
+      <div className="col-span-1 bg-card p-4 rounded-lg shadow-sm flex flex-col">
+        <h2 className="text-lg font-semibold font-poppins mb-4">
+          Top Selling Medications
+        </h2>
         <TopSellingPiechart />
       </div>
-    </>
+    </div>
   );
 };
 

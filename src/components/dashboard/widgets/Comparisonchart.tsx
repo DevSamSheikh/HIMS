@@ -16,9 +16,9 @@ const targetTotal = 12122
 
 const Comparisonchart = () => {
   return (
-    <div className="w-full h-full bg-white rounded-2xl shadow-sm border border-[#F8F9FA] p-4 flex flex-col items-center">
+    <div className="w-full h-full bg-white rounded-2xl shadow-sm border border-[#F8F9FA] py-4 px-2 flex flex-col items-center">
       <h2 className="text-xl font-semibold text-center mb-2 font-poppins">Target vs Reality</h2>
-      <div style={{ width: '100%', height: 260 }}>
+      <div style={{ width: "100%", height: 260 }}>
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} margin={{ top: 20, right: 20, left: 0, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} />
@@ -31,22 +31,22 @@ const Comparisonchart = () => {
         </ResponsiveContainer>
       </div>
       {/* Custom Legend and Summary */}
-      <div className="flex flex-col sm:flex-row justify-center items-center gap-8 mt-6 w-full">
-        <div className="flex items-center gap-3">
-          <span className="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-[#ECFDF5]">
+      <div className="flex lg:flex-row md:flex-col sm:flex-row justify-center items-center gap-8 mt-6 w-full">
+        <div className="flex items-center flex-col  gap-3">
+          <span className="inline-flex items-center  justify-center w-10 h-10 rounded-lg bg-[#ECFDF5]">
             {/* Bag Icon */}
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
               <rect x="3" y="7" width="18" height="13" rx="3" stroke="#34D399" strokeWidth="1.5" />
               <path d="M8 10V7a4 4 0 0 1 8 0v3" stroke="#34D399" strokeWidth="1.5" strokeLinecap="round" />
             </svg>
           </span>
-          <div>
+          <div className='items-center flex flex-col'>
             <div className="font-semibold text-[#222] leading-tight font-poppins">Reality Sales</div>
             <div className="text-xs text-gray-400">Global</div>
           </div>
           <span className="ml-4 text-[#4AB58E] font-bold text-lg font-roboto">{realityTotal.toLocaleString()}</span>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center   flex-col gap-3">
           <span className="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-[#FEF9C3]">
             {/* Target Icon */}
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -55,7 +55,7 @@ const Comparisonchart = () => {
               <circle cx="12" cy="12" r="2" fill="#FACC15" />
             </svg>
           </span>
-          <div>
+          <div className='items-center flex flex-col'>
             <div className="font-semibold text-[#222] leading-tight font-poppins">Target Sales</div>
             <div className="text-xs text-gray-400">Commercial</div>
           </div>

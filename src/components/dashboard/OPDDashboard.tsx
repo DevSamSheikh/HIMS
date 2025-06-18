@@ -11,16 +11,13 @@ import DashboardSkeleton from "./DashboardSkeleton";
 const OPDDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
 
-  // Simulate loading
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
     }, 1000);
-
     return () => clearTimeout(timer);
   }, []);
 
-  // Chart data
   const weeklyAppointmentsData = [
     { label: "Mon", value: 32 },
     { label: "Tue", value: 28 },
@@ -41,7 +38,7 @@ const OPDDashboard = () => {
   if (isLoading) {
     return <DashboardSkeleton />;
   }
-  // Mock data for today's appointments
+
   const todayAppointments = [
     {
       id: 1,
@@ -117,47 +114,52 @@ const OPDDashboard = () => {
   };
 
   return (
-    <div className="container mx-auto space-y-6 max-w-7xl">
-      <h1 className="text-3xl font-bold tracking-tight">OPD Dashboard</h1>
-      <p className="text-muted-foreground">
-        Manage outpatient department appointments, consultations, and patient
-        flow.
+    <div className="container bg-gray-100/50 px-5 py-4 rounded-xl mx-auto space-y-6 max-w-7xl">
+      <h1 className="text-3xl font-bold tracking-tight font-roboto">
+        OPD Dashboard
+      </h1>
+      <p className="text-muted-foreground font-roboto">
+        Manage outpatient department appointments, consultations, and patient flow.
       </p>
 
-      <StatisticsPanel
-        statistics={[
-          {
-            title: "Today's Appointments",
-            value: "42",
-            description: "Scheduled for today",
-            icon: <Calendar className="h-5 w-5" />,
-            trend: { value: 8, isPositive: true },
-          },
-          {
-            title: "Waiting Patients",
-            value: "12",
-            description: "Currently in waiting area",
-            icon: <Clock className="h-5 w-5" />,
-            trend: { value: 3, isPositive: false },
-          },
-          {
-            title: "Consultations Today",
-            value: "28",
-            description: "Completed today",
-            icon: <Stethoscope className="h-5 w-5" />,
-            trend: { value: 5, isPositive: true },
-          },
-          {
-            title: "New Patients",
-            value: "8",
-            description: "First-time visits today",
-            icon: <UserCheck className="h-5 w-5" />,
-          },
-        ]}
-      />
+      {/* Statistics Panel */}
+      <section className=" bg-ColorFul w-full">
+        <StatisticsPanel
+          statistics={[
+            {
+              title: "Today's Appointments",
+              value: "42",
+              description: "Scheduled for today",
+              icon: <Calendar className="h-5 w-5" />,
+              trend: { value: 8, isPositive: true },
+            },
+            {
+              title: "Waiting Patients",
+              value: "12",
+              description: "Currently in waiting area",
+              icon: <Clock className="h-5 w-5" />,
+              trend: { value: 3, isPositive: false },
+            },
+            {
+              title: "Consultations Today",
+              value: "28",
+              description: "Completed today",
+              icon: <Stethoscope className="h-5 w-5" />,
+              trend: { value: 5, isPositive: true },
+            },
+            {
+              title: "New Patients",
+              value: "8",
+              description: "First-time visits today",
+              icon: <UserCheck className="h-5 w-5" />,
+            },
+          ]}
+        />
+      </section>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-        <div className="lg:col-span-2 space-y-6">
+      {/* Main Widgets Grid */}
+      <section className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="md:col-span-2 lg:col-span-2 col-span-1 flex flex-col gap-4">
           <Card className="w-full bg-card">
             <CardHeader>
               <CardTitle className="text-xl flex items-center">
@@ -169,7 +171,6 @@ const OPDDashboard = () => {
               <LineChart data={weeklyAppointmentsData} height={180} />
             </CardContent>
           </Card>
-
           <Card className="w-full bg-card">
             <CardHeader>
               <CardTitle className="text-xl flex items-center">
@@ -183,16 +184,10 @@ const OPDDashboard = () => {
                   <thead>
                     <tr className="border-b">
                       <th className="text-left py-3 px-4 font-medium">Time</th>
-                      <th className="text-left py-3 px-4 font-medium">
-                        Patient
-                      </th>
-                      <th className="text-left py-3 px-4 font-medium">
-                        Doctor
-                      </th>
+                      <th className="text-left py-3 px-4 font-medium">Patient</th>
+                      <th className="text-left py-3 px-4 font-medium">Doctor</th>
                       <th className="text-left py-3 px-4 font-medium">Type</th>
-                      <th className="text-left py-3 px-4 font-medium">
-                        Status
-                      </th>
+                      <th className="text-left py-3 px-4 font-medium">Status</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -216,7 +211,7 @@ const OPDDashboard = () => {
             </CardContent>
           </Card>
         </div>
-        <div className="lg:col-span-1 space-y-6">
+        <div className="col-span-1 flex flex-col gap-4">
           <Card className="w-full bg-card">
             <CardHeader>
               <CardTitle className="text-xl flex items-center">
@@ -228,7 +223,6 @@ const OPDDashboard = () => {
               <PieChart data={consultationTypeData} size={180} />
             </CardContent>
           </Card>
-
           <TasksPanel
             tasks={[
               {
@@ -261,7 +255,6 @@ const OPDDashboard = () => {
               },
             ]}
           />
-
           <Card className="w-full bg-card overflow-hidden">
             <CardHeader>
               <CardTitle className="text-xl">Quick Actions</CardTitle>
@@ -281,7 +274,10 @@ const OPDDashboard = () => {
             </CardContent>
           </Card>
         </div>
-      </div>
+        <div className="col-span-1 flex flex-col gap-4">
+          {/* You can add more widgets here if needed */}
+        </div>
+      </section>
     </div>
   );
 };
